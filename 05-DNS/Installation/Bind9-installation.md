@@ -60,26 +60,26 @@ sudo systemctl restart named
 Dns forward zone is the DNS zone where you will be associating DNS name with IP and allow clients to define what is the IP of a hostname
 Now configure the forward zone
 ```shell
-sudo nano /var/named/fwd.testzone.com
+sudo nano /var/named/fwd.superzone.com
 ```
 DNS reversed zone is the DNS zone where you will be associating IP with DNS names to allow clients to define what is the hosname of a specific IP and check if the IP is referenced in the DNS with a hostname
 Now configure the reverse zone
 ```shell
-sudo nano /var/named/rvs.testzone.com
+sudo nano /var/named/rvs.superzone.com
 ```
 Now this will change the ownership of the dns forward and reverse zone to the named account (and all the subdirectories, here a none, only forward and reverse zone)
 ```shell
-sudo chown -R named: /var/named/{fwd.testzone.com,rvs.testzone.com}
+sudo chown -R named: /var/named/{fwd.superzone.com,rvs.superzone.com}
 ```
 
 Now check the syntax of the forward zone
 ```shell
-sudo named-checkzone testzone.com /var/named/fwd.testzone.com
+sudo named-checkzone superzone.com /var/named/fwd.superzone.com
 ```
 
 Now check the syntax of the forward zone
 ```shell
-sudo named-checkzone testzone.com /var/named/rvs.testzone.com
+sudo named-checkzone superzone.com /var/named/rvs.superzone.com
 ```
 If everything is correct you can now apply the new configuration by restarting the service
 ```shell

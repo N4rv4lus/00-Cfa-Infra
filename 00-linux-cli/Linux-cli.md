@@ -1,6 +1,6 @@
 Hello people, here you will find some command lines to learn & use shell and linux distributions (this is not exhaustive and if you have an issue or want to understand how works some specifics commands, use the "command" + "-help" in your command line)
 
-Base commands :
+## Base commands :
 
 Print current directory in shell, the actual path where you are
 ```shell
@@ -37,7 +37,7 @@ cd -
 cd /home/user/test
 ```
 
-List Directory - "ls"
+## List Directory - "ls"
 
 "ls" will list the current directory contents (files and folders)
 ```shell
@@ -79,7 +79,7 @@ ls -r
 ls -t
 ```
 
-File permission(s)
+## File permission(s)
     
 drwxr-xr-x        7                  pete          team1       4096           Nov 20 16:37    Desktop
 file permission nombre de lien name_owner name_group size_in_bytes timestamp file/directory name
@@ -117,7 +117,7 @@ to navigate in the less use : "q" to quit / move in the page with the arrow keys
 "G" to move to the end of the file / "/name_of_the_words_you_searching" to search a specific word
 "h" for help
     
-research command
+## research command
     
 arrow key top (run the last command)
 !! (run the last command without typing it)
@@ -138,7 +138,7 @@ df -h
 
 history (list all the commands you have passed)
 
-ADVANCE
+## ADVANCE
 stdin 0 / stdout  1  / stderr 2
 < >     (stdin standard in redirection)
             
@@ -187,7 +187,7 @@ ls + | + tee + file_to_display (will display on the screen + in the file)
 ls | tee file_to_display
 ```
 
-env (Environment)
+## env (Environment)
 
 echo $HOME (display path)
 ```shell
@@ -209,7 +209,7 @@ echo $PATH (return list of paths used by the system to runs commands)
 echo $PATH
 ```
 
-paste (like cat command)
+## paste (like cat command)
         
 paste + -s + filename (will display filename on one line with tabs between words)
 ```shell
@@ -221,7 +221,7 @@ paste + -d + ' ' + -s + filename (will display filename on one line with space i
 paste -d ' ' -s filename
 ```
 
-head (return the first lines of a file)
+## head (return the first lines of a file)
         
 head + /directory1/directory2/filename  (return first 10 lines)
 ```shell
@@ -249,14 +249,14 @@ tail + -f + /directory1/directory2/filename (return last 10 lines even if the fi
 tail -f /directory1/directory2/filename
 ```
 
-expand and unexpand (change tabs to space in a file)
+## expand and unexpand (change tabs to space in a file)
      
 expand + -a + file_name
 ```shell
 expand -a file_name
 ```
 
-join and split
+## join and split
         
 ```
 file1.txt
@@ -285,7 +285,7 @@ split + file_to_split (will separate files, up to 1000 lines, after files named 
 split file_to_split
 ```
 
-- sort
+## sort
         
 sort + file_name (will sort the line by the alphabet)
 ```shell
@@ -305,7 +305,7 @@ tr + a-z + A-Z (will convert your text in capital letter)
 ```shell
 tr a-z A-Z
 ```
-uniq (unique)
+## uniq (unique)
         
 uniq + file_name (remove duplicates who are adjacent)
 ```shell
@@ -346,7 +346,7 @@ wc + -v + path/file_name (count only bytes)
 ```shell
 wc -v path/file_name
 ```
-grep (search words in file)
+## grep (search words in file)
 
 grep + wordk_searched + file_name (will show the word you're looking for in the terminal)
 ```shell
@@ -361,7 +361,7 @@ ls + /somedir + | + grep + '.txt$' (will show all .txt in "/somedir)
 ```shell
 ls /somedir | grep '.txt$'
 ```
-TOP
+## TOP
         
         Let's go over what this output means, you don't have to memorize this, but come back to this when you need a reference.
         
@@ -410,7 +410,7 @@ TOP
 $ top -p 1
 ```
         
-USER and GROUPS      
+## USER and GROUPS      
 sudo + command_line (will elevate you as the root if you have the password)
 ```shell
 sudo #add any command
@@ -421,7 +421,7 @@ su (change youre session with the superuser (root) or you can edit the file with
 su #(substitute user)
 ```
 
-/etc/passwd
+## /etc/passwd
    
 cat /etc/passwd (return list of users)
 1username / 2Userpassword(/etc/shadow) / 3 UserID / 4groupID / 5 GECOS field (comments about user) / 6 User's home directory / 7 User's shell) 
@@ -436,7 +436,7 @@ vipw
 nano /etc/passwd
 ```
 
-/etc/shadow (where are stored the encrypted passwd)
+## /etc/shadow (where are stored the encrypted passwd)
         
 sudo cat /etc/shadow
 1Usernam / 2encrypted password / 3 date of last password as nb days if 1970 / 4Mininmum password age to change their password again / 5password maximum age / 6password warning period / 7password inactivity nb days/ 8account expiration date / 9Reserved field for future use
@@ -458,7 +458,7 @@ groups (show your group name)
 groups
 ```
         
-User Management Tools
+## User Management Tools
 useradd (add an user)
 sudo + useradd + name_user (will add bob as a USER it can be customisable)
 ```shell
@@ -523,7 +523,7 @@ sudo + chgrp + groupname + myfile (change group owner "groupname")
 sudo chgrp groupname myfile
 ```
 
-Setuid
+## Setuid
 ```shell
 ls -l /usr/bin/passwd
 ```
@@ -544,7 +544,7 @@ sudo chmod 2555 myfile
 ```
 2 = will change the group id and permit to use the file as if you were in the group
         
-PROCESS Permissions
+## PROCESS Permissions
         
 Effective user ID = the user who is connected and launched the process, decides what access to grant        
 When you launch a process, it runs with the same permissions as the user or group that ran it. This UID is used to grant access rights to a process.
@@ -560,7 +560,7 @@ sudo + chmod + 1755 + myfile_or_dir (will set only the user or root can delete t
 sudo chmod 1755 myfile_or_dir
 ```
         
-Processes
+## Processes
 ps + aux + | + grep + cat (show processes of other window) 
 ```shell
 ps aux | grep cat
@@ -612,7 +612,7 @@ ps x
 - TIME: Total CPU usage time
 - COMMAND: Name of executable/command
         
-top (displays real time information running processes + refreshment every 10s)
+## top (displays real time information running processes + refreshment every 10s)
 - Controlling Terminal
 two types of terminal : 
 - TTY1 (first virtual console no graphics + for the OS and Hardware, daemon processes that are running for the system)
@@ -627,7 +627,7 @@ ps + l (show long format detailed view of running processes)
 ps l
 ```
     
-- Signals
+## Signals
 Ctrl-C or Ctrl-Z (will kill, interrupt or suspend processes) 
 - SIGHUP or HUP or 1: Hangup
 - SIGINT or INT or 2: Interrupt
@@ -640,6 +640,6 @@ kill + 12540 (kill the process with the PID of 12540, and does cleanup)
 kill + -9  + 12445 (kill process 12540 and doesn't do anything else)
 
 /*           
-- Niceness (CPU time)
+## Niceness (CPU time)
 nice (print the niceness, order of process CPU Time required, -20 is most favorable / 19 lest favorable) 
-nice + -n + 5 + apt + upgrade will set your
+nice + -n + 5 + apt + upgrade

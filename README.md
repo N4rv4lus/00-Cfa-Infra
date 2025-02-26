@@ -3,7 +3,7 @@ These files contains mostly linux environnement files, AND they are not intended
 
 This will setup a small infrastructure (not secured for production), and automatize most of the processes.
 
-If you are a student from Insta, please learn on yourself and use this repository just to add more knowledges to your labs.
-Do not hesitate to make any suggestion / requests to make it better !
+If you are a student from Insta, please learn the concepts by yourself and use this repository as a helper.
+Do not hesitate to make any branch to make it better !
 
 Enjoy :)

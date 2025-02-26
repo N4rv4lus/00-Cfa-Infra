@@ -138,10 +138,9 @@ df -h
 
 history (list all the commands you have passed)
 
-Tree
 Tree cli will permit you to check the directories & files stored in a specific directory, and will order them following this order Parent-folder > Child-folder > files
 ```shell
-tree
+tree /directory_to_check
 ```
 
 ## ADVANCE

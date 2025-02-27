@@ -1,0 +1,25 @@
+---
+  - name: Add hosts to DNS
+    hosts: lab-dns
+    become: yes
+    become_method: sudo
+    tasks:
+    - name: Add entry to lab-DNS superzone.com
+      shell:
+          "sudo sed -i -e '$aPrometheus.superzone.com.          IN      A       192.168.100.6' /var/named/fwd.superzone.com && tail -1 /var/named/fwd.superzone.com"
+
+    - name: Add entry to lab-DNS superzone.com
+      shell:
+          "sudo sed -i -e '$agrafana.superzone.com.          IN      A       192.168.100.7' /var/named/fwd.superzone.com && tail -1 /var/named/fwd.superzone.com"
+
+    - name: Add entry to Primary DNS reverseZone 192.168.100
+      shell:
+          "sudo sed -i -e '$a6   IN      PTR     prometheus.superzone.com.    ; 192.168.100.6' /var/named/rvs.superzone.com && tail -1 /var/named/rvs.superzone.com"
+
+    - name: Add entry to Primary DNS reverseZone 192.168.100
+      shell:
+          "sudo sed -i -e '$a7   IN      PTR     grafana.superzone.com.    ; 192.168.100.6' /var/named/rvs.superzone.com && tail -1 /var/named/rvs.superzone.com"
+
+    - name: reboot service
+      shell:
+          "sudo systemctl restart named"

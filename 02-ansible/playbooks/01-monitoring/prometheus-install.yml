@@ -1,0 +1,89 @@
+---
+  - name: Automate Install Prometheus
+    hosts: monitoring
+    become: yes
+    become_method: sudo
+    tasks:
+    - name: create prometheus configuration file directory
+      shell:
+          "sudo mkdir -p /etc/prometheus"
+    - name: create prometheus data directory
+      shell:
+          "sudo mkdir -p /var/lib/prometheus"
+    - name: move to admin directory
+      shell:
+          "cd /home/admin"
+    - name: download prometheus installation for release 2.31.0 from githum
+      shell:
+          "wget https://github.com/prometheus/prometheus/releases/download/v2.31.0/prometheus-2.31.0.linux-amd64.tar.gz"
+    - name: extract files
+      shell:
+          "tar -xvf prometheus-2.31.0.linux-amd64.tar.gz"
+    - name: go to prometheus extraction folder
+      shell:
+          "cd prometheus-2.31.0.linux-amd64/"
+    - name: move promtool
+      shell:
+          "sudo mv /home/admin/prometheus-2.31.0.linux-amd64/prometheus /home/admin/prometheus-2.31.0.linux-amd64/promtool /usr/local/bin/"
+    - name: move consoles & consoles_libraries to prometheus directory
+      shell:
+          "sudo mv /home/admin/prometheus-2.31.0.linux-amd64/consoles/ /home/admin/prometheus-2.31.0.linux-amd64/console_libraries/ /etc/prometheus/"
+    - name: move yaml files in prometheus directory
+      shell:
+          "sudo mv /home/admin/prometheus-2.31.0.linux-amd64/prometheus.yml /etc/prometheus"
+    #- name: check prometheus version
+    # shell:
+    #      "prometheus --version"
+    - name: Configure system group for prometheus
+      shell:
+          "sudo groupadd --system prometheus"         
+    - name: Configure system user for prometheus
+      shell:
+          "sudo useradd -s /sbin/nologin --system -g prometheus prometheus"
+    #- name:
+    #  shell:
+    #      "sudo mkdir /var/lib/prometheus"
+    - name:
+      shell:
+          "sudo chown -R prometheus:prometheus /etc/prometheus/ /var/lib/prometheus/"
+    - name:
+      shell:
+          "sudo chmod -R 775 /etc/prometheus/ /var/lib/prometheus/"
+    - name:
+      shell:
+          "sudo touch /etc/systemd/system/prometheus.service"
+    - name:
+      shell:
+          "sudo cat /etc/systemd/system/prometheus.service << EOF
+          [Unit]
+          Description=Prometheus
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          User=prometheus
+          Group=prometheus
+          Type=simple
+          ExecStart=/usr/local/bin/prometheus \
+          --config.file /etc/prometheus/prometheus.yml \
+          --storage.tsdb.path /var/lib/prometheus/ \
+          --web.console.templates=/etc/prometheus/consoles \
+          --web.console.libraries=/etc/prometheus/console_libraries
+
+          [Install]
+          WantedBy=multi-user.target
+          "
+
+#    - name: Copy prometheus.service to systemd directory
+#      copy:
+#        src: /home/admin/prometheus/prometheus.service
+#        dest: /etc/systemd/system/
+    - name: start prometheus service
+      shell:
+          "sudo systemctl start prometheus"
+    - name: start prometheus service
+      shell:
+          "sudo systemctl enable prometheus"
+    - name: now check prometheus status
+      shell:
+          "sudo systemctl status prometheus"

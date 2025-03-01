@@ -31,30 +31,25 @@
     - name: move yaml files in prometheus directory
       shell:
           "sudo mv /home/admin/prometheus-2.31.0.linux-amd64/prometheus.yml /etc/prometheus"
-    #- name: check prometheus version
-    # shell:
-    #      "prometheus --version"
     - name: Configure system group for prometheus
       shell:
           "sudo groupadd --system prometheus"         
     - name: Configure system user for prometheus
       shell:
           "sudo useradd -s /sbin/nologin --system -g prometheus prometheus"
-    #- name:
-    #  shell:
-    #      "sudo mkdir /var/lib/prometheus"
-    - name:
-      shell:
+    - name: set owner to prometheus for /etc/prometheus & /var/lib/prometheus
+      shell: 
           "sudo chown -R prometheus:prometheus /etc/prometheus/ /var/lib/prometheus/"
-    - name:
+    - name: set writes for /etc/prometheus & for /var/lib/prometheus
       shell:
           "sudo chmod -R 775 /etc/prometheus/ /var/lib/prometheus/"
-    - name:
+    - name: create prometheus service
       shell:
           "sudo touch /etc/systemd/system/prometheus.service"
-    - name:
-      shell:
-          "sudo cat /etc/systemd/system/prometheus.service << EOF
+    - name: write configuration data for systemd service
+      lineinfile:
+        path: /etc/systemd/system/prometheus.service
+        line: |  
           [Unit]
           Description=Prometheus
           Wants=network-online.target
@@ -72,12 +67,6 @@
 
           [Install]
           WantedBy=multi-user.target
-          "
-
-#    - name: Copy prometheus.service to systemd directory
-#      copy:
-#        src: /home/admin/prometheus/prometheus.service
-#        dest: /etc/systemd/system/
     - name: start prometheus service
       shell:
           "sudo systemctl start prometheus"

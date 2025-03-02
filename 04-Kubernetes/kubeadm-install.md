@@ -1,6 +1,4 @@
-# Kubernetes installation with KUBEADM
-
-
+# Kubernetes installation with KUBEADM  (RockyLinux 9.3 - Onyx)
 
 ## Getting started
 
@@ -62,29 +60,46 @@ sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables ne
 sudo cat /sys/class/dmi/id/product_uuid
 ```
 
-set linux to permissiv mode
+## SeLinux to permissiv mode (Rhel distrib)
+set linux to permissiv mode 
+(it is not supported on redhat distribution, it will be tested quickly on this repo to have the highest security settiings, if it's not functionnal, there will be installed on another OS)
 ```shell
 sudo setenforce 0
 ```
-
+add it to the 
 ```shell
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 ```
-   44  cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
-   45  [kubernetes]
-   46  name=Kubernetes
-   47  baseurl=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/
-   48  enabled=1
-   49  gpgcheck=1
-   50  gpgkey=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/repodata/repomd.xml.key
-   51  exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
 
+## Download Kubernetes app
+Add K8's repo for yum in yum repos config files
+```shell
+cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/
+enabled=1
+gpgcheck=1
+gpgkey=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/repodata/repomd.xml.key
+exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
+```
+
+download kubelet / kubeadm / kubectl
+```shell
 sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-   54  sudo systemctl enable --now kubelet
-   55  sudo systemctl status kubelet.service
-   56  sudo nano kubeadm-config.yaml
+```
 
-# kubeadm-config.yaml
+now enable services
+```shell
+sudo systemctl enable --now kubelet
+```
+```shell
+sudo systemctl status kubelet.service
+```
+
+now you can insert those lines in kubernetes
+
+```yaml
 kind: ClusterConfiguration
 apiVersion: kubeadm.k8s.io/v1beta3
 kubernetesVersion: v1.28.0
@@ -92,12 +107,23 @@ kubernetesVersion: v1.28.0
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io
 cgroupDriver: systemd
+```
+## Now launch k8 setup with kubeadm
 
-ip route show
+install kubeadm
+```shell
 sudo kubeadm init
+```
 
+to check the configuration
+```shell
 kubectl config view
+```
+
+now check the configuration 
+```shell
 sudo kubeadm certs check-expiration
+```
 
 configurer cgroupdrivers
 

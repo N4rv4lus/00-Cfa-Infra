@@ -1,10 +1,42 @@
+# Kubernetes installation with KUBEADM  (RockyLinux 9.3 - Onyx)
+
+## Getting started
+
+Here is a small procedure to install Kubernetes and setup a cluster
+
+First as usual set hosntame
+```shell
 sudo hostnamectl set-hostname Cluster-KUB-Manager01
-    3  sudo dnf upgrade -y
-    4  sudo firewall-cmd --permanent --add-port={6443/tcp,2379/tcp,2380/tcp,10250/tcp,10259/tcp,10257/tcp,10248/tcp,9100/tcp,7946/ucp,7946/tcp,7646/ucp,7646/ucp,2379/tcp}
-    5  sudo firewall-cmd --permanent --add-port={6443/tcp,2379/tcp,2380/tcp,10250/tcp,10259/tcp,10257/tcp,10248/tcp,9100/tcp,7946/udp,7946/tcp,7646/udp,7646/tcp,2379/tcp}
-    6  sudo firewall-cmd --reload
-    7  sudo firewall-cmd --list-all
-    8  sudo reboot now
+```
+Then update your server
+```shell
+sudo dnf upgrade -y
+```
+
+## Now prepare the install before
+
+### Setup Network rules
+
+Open ports & network protocols
+```shell
+sudo firewall-cmd --permanent --add-port={6443/tcp,2379/tcp,2380/tcp,10250/tcp,10259/tcp,10257/tcp,10248/tcp,9100/tcp,7946/udp,7946/tcp,7646/udp,7646/tcp,2379/tcp}
+```
+Reload firewalld configuration to apply
+```shell
+sudo firewall-cmd --reload
+```
+Check the configuration
+```shell
+sudo firewall-cmd --list-all
+```
+Reboot your server just in case to be sure the parameter are loaded during boot
+```shell
+sudo reboot now
+```
+
+### Set Rocky security protocols
+
+```shell
     9  sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
    10  sestatus
    11  sudo setenforce 0

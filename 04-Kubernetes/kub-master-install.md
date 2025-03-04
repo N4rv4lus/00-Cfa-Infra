@@ -56,22 +56,36 @@ Check selinux configuration
 ```shell
 sestatus
 ```
-   13  sudo modprobe overlay
-
+Add module to the kernel linux, here is a specific File System for docker
+```shell
+sudo modprobe overlay
+```
+Now add br_netfilter for kubernetes & docker to have access to iptables (all know ip from the server) & nftables (network firewall tables - same as ip but the server internal firewall)
+```shell
 sudo modprobe br_netfilter
+```
 
-
+Now push overlay & br_netfilter to the k8s modules configuration files in module loads to be loaded at boot
+```shell
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 overlay
 br_netfilter
 EOF
+```
+Now add the iptables & nftables for ipv4, ipv6 and forward, to permit docker & kubernetes to have access to it
+```shell
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
+```
+Now check systctl conf
+```shell
+sudo sysctl --system
+```
 
-   19  cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
-   20  net.bridge.bridge-nf-call-iptables  = 1
-   21  net.bridge.bridge-nf-call-ip6tables = 1
-   22  net.ipv4.ip_forward                 = 1
-   23  EOF
-   24  sudo sysctl --system
+### Now disable swap because this version of k8s do not suppord isolated swap for containers and it could become a leak for containers because they will be using the same volume
 
 Comment swap configuration line in fstab (configuration file that loads the storage systems at boot)
 ```shell
@@ -81,12 +95,11 @@ For avoiding a reboot turn off swap directly (and reboot later)
 ```shell
 sudo swapoff -a
 ```
-
+Now check if you have enough RAM, technically it should be configured to have at least 4 go
 ```shell
 free -m
 ```
-   28  sudo dnf install dnf-utils
-   29  
+
    30  sudo yum-config-manager     --add-repo     https://download.docker.com/linux/centos/docker-ce.repo
    31  sudo dnf repolist
    32  sudo dnf makecache

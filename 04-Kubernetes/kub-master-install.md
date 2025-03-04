@@ -174,8 +174,26 @@ Create a directory to store flannel network service binaries
 mkdir -p /opt/bin/
 ```
 
-   60  sudo curl -fsSLo /opt/bin/flanneld https://github.com/flannel-io/flannel/releases/download/v0.19.0/flanneld-amd64
-   61  sudo chmod +x /opt/bin/flanneld
-   62  lsmod | grep br_netfilter
-   63  sudo kubeadm config images pull
-   64  sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=Cluster-KUB-Manager01 --cri-socket=unix:///run/containerd/containerd.sock
+```shell
+sudo curl -fsSLo /opt/bin/flanneld https://github.com/flannel-io/flannel/releases/download/v0.19.0/flanneld-amd64
+```
+
+Make flanneld executable
+```shell
+sudo chmod +x /opt/bin/flanneld
+```
+check if br_netfilter is loaded, and used by bridged
+```shell
+lsmod | grep br_netfilter
+```
+Now pull kubernetes images needed to run, this will pull coredns, kube-api, etcd, kube-controller, kube-proxy
+```shell
+sudo kubeadm config images pull
+```
+After all the step validated you can now setup the cluster with kubeadm init
+- "--pod-network-cidr=10.244.0.0/16" here is the cluster internal network powered by flanneled that will be shared for containers hosted in the nodes
+- "--apiserver-advertise-address=Cluster-KUB-Manager01" is the hostname of the Kubernetes Cluster (you can specify an IP)
+- "--cri-socket=unix:///run/containerd/containerd.sock" is the socket for containerd
+```shell
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=Cluster-KUB-Manager01 --cri-socket=unix:///run/containerd/containerd.sock
+```

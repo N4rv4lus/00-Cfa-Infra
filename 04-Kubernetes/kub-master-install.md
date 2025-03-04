@@ -102,7 +102,7 @@ free -m
 
 ## Now install containerd
 
-add the repository
+add docker repository
 ```shell
 sudo yum-config-manager     --add-repo     https://download.docker.com/linux/centos/docker-ce.repo
 ```
@@ -110,11 +110,15 @@ Check your repository lists
 ```shell
 sudo dnf repolist
 ```
-
+Now run makecache for dnf to store directly metadata in cache (directory /var/cache/dnf/)
+```shell
 sudo dnf makecache
-   33  sudo dnf install containerd.io
-   34  sudo dnf install containerd.io -y
-   35  sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
+```
+Now Install containered
+```shell
+sudo dnf install containerd.io -y
+```
+sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
    36  sudo containerd config default > /etc/containerd/config.toml
    37  sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
    38  sudo containerd config default > /etc/containerd/config.toml

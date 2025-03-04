@@ -100,9 +100,18 @@ Now check if you have enough RAM, technically it should be configured to have at
 free -m
 ```
 
-   30  sudo yum-config-manager     --add-repo     https://download.docker.com/linux/centos/docker-ce.repo
-   31  sudo dnf repolist
-   32  sudo dnf makecache
+## Now install containerd
+
+add the repository
+```shell
+sudo yum-config-manager     --add-repo     https://download.docker.com/linux/centos/docker-ce.repo
+```
+Check your repository lists
+```shell
+sudo dnf repolist
+```
+
+sudo dnf makecache
    33  sudo dnf install containerd.io
    34  sudo dnf install containerd.io -y
    35  sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig

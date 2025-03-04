@@ -118,31 +118,62 @@ Now Install containered
 ```shell
 sudo dnf install containerd.io -y
 ```
+
+
+Now create a copy of containerd configuration
+```shell
 sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
-   36  sudo containerd config default > /etc/containerd/config.toml
-   37  sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
-   38  sudo containerd config default > /etc/containerd/config.toml
-   39  su
-   40  sudo nano /etc/containerd/config.toml
+```
+Now set new containerd config default file
+```shell
+sudo containerd config default > /etc/containerd/config.toml
+```
+set up systemd for containerd - CRI-O for the container to have fair ressource allocation from the host
+```shell
+sudo nano /etc/containerd/config.toml
+```
+Now enable containerd
    41  sudo systemctl enable --now containerd
-   42  sudo systemctl is-enabled containerd
-   43  sudo systemctl status containerd
-   44  cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
-   45  [kubernetes]
-   46  name=Kubernetes
-   47  baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
-   48  enabled=1
-   49  gpgcheck=1
-   50  gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-   51  exclude=kubelet kubeadm kubectl
-   52  EOF
-   53  sudo dnf repolist
-   54  sudo dnf makecache
-   55  sudo dnf install kubelet kubeadm kubectl --disableexcludes=kubernetes
-   56  sudo dnf install kubelet kubeadm kubectl --disableexcludes=kubernetes -y
-   57  sudo systemctl enable --now kubelet
-   58  mkdir -p /opt/bin/
-   59  su
+
+Now Check containerd and check status
+```shell
+sudo systemctl is-enabled containerd
+sudo systemctl status containerd
+```
+
+## Now install Kubernetes
+1st setup kubernetes repository in yum.repos
+```shell
+cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kubelet kubeadm kubectl
+EOF
+```
+Now check the repolist and load metadata to be more efficient for the download
+```shell
+sudo dnf repolist
+sudo dnf makecache
+```
+Now install kubernetes (kubelet, kubeadm & kubectl)
+```shell
+sudo dnf install kubelet kubeadm kubectl --disableexcludes=kubernetes -y
+```
+
+Enable Kubelet service
+```shell
+sudo systemctl enable --now kubelet
+```
+## Install Kubernetes flannel network service to allow a virtual network
+Create a directory to store flannel network service binaries
+```shell
+mkdir -p /opt/bin/
+```
+
    60  sudo curl -fsSLo /opt/bin/flanneld https://github.com/flannel-io/flannel/releases/download/v0.19.0/flanneld-amd64
    61  sudo chmod +x /opt/bin/flanneld
    62  lsmod | grep br_netfilter

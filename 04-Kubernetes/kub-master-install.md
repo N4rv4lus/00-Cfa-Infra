@@ -36,25 +36,49 @@ sudo reboot now
 
 ### Set Rocky security protocols
 
+Set linux to permissiv mode 
+(it is not supported on redhat distribution, it will be tested quickly on this repo to have the highest security settiings, if it's not functionnal, there will be installed on another OS)
+
+Modify permenantly the SELINUX to permissive mode (not applied until reboot)
 ```shell
-    9  sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-   10  sestatus
-   11  sudo setenforce 0
-   12  sestatus
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+```
+Check selinux configuration
+```shell
+sestatus
+```
+Now set selinux to permissiv but temporarly
+```shell
+sudo setenforce 0
+```
+```shell
+sestatus
+```
    13  sudo modprobe overlay
-   14  sudo modprobe br_netfilter
-   15  cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
-   16  overlay
-   17  br_netfilter
-   18  EOF
+
+sudo modprobe br_netfilter
+
+
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
    19  cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
    20  net.bridge.bridge-nf-call-iptables  = 1
    21  net.bridge.bridge-nf-call-ip6tables = 1
    22  net.ipv4.ip_forward                 = 1
    23  EOF
    24  sudo sysctl --system
-   25  sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-   26  sudo swapoff -a
+
+Comment swap configuration line in fstab (configuration file that loads the storage systems at boot)
+```shell
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+```
+For avoiding a reboot turn off swap directly (and reboot later)
+```shell
+sudo swapoff -a
+```
    27  free -m
    28  sudo dnf install dnf-utils
    29  sudo dnf install dnf-utils -y

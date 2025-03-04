@@ -51,6 +51,7 @@ Now set selinux to permissiv but temporarly
 ```shell
 sudo setenforce 0
 ```
+Check selinux configuration
 ```shell
 sestatus
 ```

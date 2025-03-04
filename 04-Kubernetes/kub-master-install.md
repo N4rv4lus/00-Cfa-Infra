@@ -118,7 +118,10 @@ Now Install containered
 ```shell
 sudo dnf install containerd.io -y
 ```
+Now create a copy of containerd configuration
+```shell
 sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
+```
    36  sudo containerd config default > /etc/containerd/config.toml
    37  sudo mv /etc/containerd/config.toml /etc/containerd/config.toml.orig
    38  sudo containerd config default > /etc/containerd/config.toml

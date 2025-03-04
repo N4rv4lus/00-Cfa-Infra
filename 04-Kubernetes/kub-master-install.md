@@ -191,9 +191,16 @@ Now pull kubernetes images needed to run, this will pull coredns, kube-api, etcd
 sudo kubeadm config images pull
 ```
 After all the step validated you can now setup the cluster with kubeadm init
+Explanation of the command : 
 - "--pod-network-cidr=10.244.0.0/16" here is the cluster internal network powered by flanneled that will be shared for containers hosted in the nodes
 - "--apiserver-advertise-address=Cluster-KUB-Manager01" is the hostname of the Kubernetes Cluster (you can specify an IP)
 - "--cri-socket=unix:///run/containerd/containerd.sock" is the socket for containerd
 ```shell
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=Cluster-KUB-Manager01 --cri-socket=unix:///run/containerd/containerd.sock
+```
+When it will be validated, the kubeadm will share with you a cli to join the cluster to put on the workers, keep it, it will be useful
+it is a conbination of your host IP and of a token
+```shell
+kubeadm join 192.168.100.116:6443 --token ld9rui.p75uchc8omn29zq0 \
+        --discovery-token-ca-cert-hash sha256:b953a71368d7521a7dbb6e46624e8c24af40651bdcceff18119fc71212ddd695
 ```

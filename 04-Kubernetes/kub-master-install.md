@@ -80,7 +80,10 @@ For avoiding a reboot turn off swap directly (and reboot later)
 ```shell
 sudo swapoff -a
 ```
-   27  free -m
+
+```shell
+free -m
+```
    28  sudo dnf install dnf-utils
    29  sudo dnf install dnf-utils -y
    30  sudo yum-config-manager     --add-repo     https://download.docker.com/linux/centos/docker-ce.repo

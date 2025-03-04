@@ -11,6 +11,7 @@ sudo hostnamectl set-hostname Cluster-KUB-Manager01
 Then update your server
 ```shell
 sudo dnf upgrade -y
+sudo dnf install dnf-utils -y
 ```
 
 ## Now prepare the install before
@@ -85,7 +86,7 @@ sudo swapoff -a
 free -m
 ```
    28  sudo dnf install dnf-utils
-   29  sudo dnf install dnf-utils -y
+   29  
    30  sudo yum-config-manager     --add-repo     https://download.docker.com/linux/centos/docker-ce.repo
    31  sudo dnf repolist
    32  sudo dnf makecache

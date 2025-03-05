@@ -1,4 +1,5 @@
 # Here is a playbook to deploy an sql instance on kubernetes
+# this is not secured, check how to securely store a secret
 
 ####### Mysql-Volume #########
 apiVersion: v1

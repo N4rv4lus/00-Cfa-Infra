@@ -1,0 +1,95 @@
+# Here is a playbook to deploy an sql instance on kubernetes
+
+####### Mysql-Volume #########
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv-volume01
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim01
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+####### Secret #########
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret01
+type: kubernetes.io/basic-auth
+stringData:
+  password: test0000
+####### Deployment #########
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql01
+spec:
+  selector:
+    matchLabels:
+      app: mysql01
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql01
+    spec:
+      containers:
+      - image: mysql:latest
+        name: mysql
+        resources:
+          requests:
+            memory: "4096Mi"
+          limits:
+            memory: "4096Mi"
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret01
+              key: password
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql01
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim01
+######### service NODE PORT ###################
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql01
+  labels:
+    app: mysql01
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+    nodePort: 30040
+  selector:
+    app: mysql01
+  type: NodePort

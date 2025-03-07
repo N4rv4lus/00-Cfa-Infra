@@ -1,0 +1,19 @@
+---
+  - name: Shell Examples
+    hosts: MANAGER-KUB
+    tasks:
+    - name: delete Service
+      shell:
+         "kubectl delete svc mysql01"
+    - name: delete Deployment
+      shell:
+         "kubectl delete deployment mysql01"
+    - name: delete Secret
+      shell:
+         "kubectl delete secret mysql-secret01"
+    - name: delete Persitent Volume Claim
+      shell:
+         "kubectl delete pvc mysql-pv-claim01"
+    - name: delete Persitent-Volume
+      shell:
+         "kubectl delete pv mysql-pv-volume01"

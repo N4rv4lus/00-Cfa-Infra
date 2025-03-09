@@ -1,0 +1,24 @@
+---
+  - name: Shell Examples
+    hosts: MANAGER-KUB
+    tasks:
+
+    - name: Copy shell script to remote server
+      copy:
+        src: /home/admin/guestbook/guestbook-app.yaml
+        dest: /home/admin/
+        mode: 0755
+
+    - name: test
+      shell:
+         "kubectl apply -f /home/admin/guestbook-app.yaml"
+
+    - name: test
+      shell:
+         "kubectl get svc"
+      register: kub_output
+    - name: test output file
+      copy:
+         content: "{{ kub_output.stdout }}"
+         dest: "/home/admin/info-guestbook.txt"
+      delegate_to: localhost

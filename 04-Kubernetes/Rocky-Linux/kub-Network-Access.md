@@ -51,7 +51,7 @@ You can check the host and the node with :
 kubectl get pods -o wide && kubectl get svc
 ```
 
-Voici l'output : 
+Here is the output : 
 For the nodes
 ```sql
 NAME                            READY   STATUS    RESTARTS   AGE   IP            NODE        NOMINATED NODE   READINESS GATES

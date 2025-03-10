@@ -1,4 +1,4 @@
-## Deploy a Loadbalancer for kubernetes with Metallb
+# Deploy Network services for kubernetes with Metallb
 
 Since we are creating a kubernetes cluster OnPremise, there is no Loadbalancer service on the cloud
 
@@ -28,7 +28,7 @@ service/mysql01      NodePort       10.107.134.86   <none>            3306:30040
 service/nginx5       LoadBalancer   10.99.62.93     192.168.100.201   80:30495/TCP     1s
 ```
 
-# Cluster IP
+## Cluster IP
 
 ClusterIP is used for internal communication.
 It is dedicated for pods to communicate inside the cluster, and will permit the pods hosting apps to communicate together. 
@@ -39,7 +39,7 @@ NAME                 TYPE           CLUSTER-IP      EXTERNAL-IP       PORT(S)   
 service/kubernetes   ClusterIP      10.96.0.1       <none>            443/TCP          226d
 ```
 
-# NodePort
+## NodePort
 
 NodePort is used to open a port on the node where the pod is hosted.
 The port dedicated for nodePort in kubernetes are between 30000-32767.
@@ -81,6 +81,33 @@ database-6f7c89d65f-lxg4j   node-2      10.244.0.5    192.168.1.2
 nginx-ingress-controller-2w7kp node-3  10.244.0.6    192.168.1.3
 ```
 
-# LoadBalancer
+You can check the NodePort with the deployment of mysql. The mysql instance is deployable with mysql-deployment.yaml file which is stored in the repo in /04-Kubernetes/mysql/mysql-deployment.yaml
 
+To apply mysql instance pod you can run this command :
+```shell
+kubectl apply -f /home/admin/mysql-deployment.yaml
+```
 
+And you can access the sql instance on your host with this command
+The password is stored in the secret part "test0000", and you will just have to modify the hostname or Ip if you don't have a DNS, and add the port specified in the service "nodePort: 30040"
+
+```shell
+mysql -u root -h worker-kub01 -P 30040 -p
+```
+
+## LoadBalancer
+
+LoadBalancer permit Kubernetes to setup a service that will set a loadbalancer inside the cluster and it will redirect flows to the specifcs ports.
+
+<!---
+add nginx files + explanation of the range + guestbook explanation & files (guestbook-app.yaml already pushed)
+
+```sql
+NAME                 TYPE           CLUSTER-IP      EXTERNAL-IP       PORT(S)          AGE
+service/kubernetes   ClusterIP      10.96.0.1       <none>            443/TCP          226d
+service/nginx5       LoadBalancer   10.99.62.93     192.168.100.201   80:30495/TCP     1s
+```
+-->
+
+## Ingress
+Will be implemented, tested and documented at next update of the repod :)

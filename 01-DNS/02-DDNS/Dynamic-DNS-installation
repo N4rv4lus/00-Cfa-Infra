@@ -1,0 +1,301 @@
+Setup DHCP : 
+DHCP SERVER
+sudo dnf install dhcp-server
+sudo nano /etc/dhcp/dhcpd.conf
+#
+# DHCP Server Configuration file.
+#   see /usr/share/doc/dhcp-server/dhcpd.conf.example
+#   see dhcpd.conf(5) man page
+#
+default-lease-time 360;
+max-lease-time 720;
+authoritative;
+subnet 172.16.3.0 netmask 255.255.255.0 {
+range 172.16.3.190 172.16.3.200;
+option routers 172.16.3.1;
+option subnet-mask 255.255.255.0;
+option domain-name-servers 172.16.3.50;
+}
+sudo systemctl enable --now dhcpd
+sudo systemctl status dhcpd
+sudo firewall-cmd --add-service=dhcp --permanent
+sudo firewall-cmd --reload
+DHCP CLIENT : 
+sudo dnf install dhclient
+sudo dnf install dhcp-client
+nmtui
+
+naviguez avec les flèches et entrez, sélectionnez “Edit Connection” puis “eth0” puis edit :  
+sudo nmcli connection modify eth0 ipv4.method auto
+sudo nmcli connection down eth0; nmcli connetion up eth0
+sudo dhclient -v -r
+sudo reboot now
+Sélectionnez sur la ligne IPv4 Configuration en automatic, puis mettez vos serveur DNS, et ensuite allez sur OK.	 
+
+Ensuite quittez tout le système et redémarrez 
+
+
+Serveur DNS : https://fr.linux-console.net/?p=22416 
+Installez le serveur : 
+sudo dnf install bind bind-utils
+
+
+
+
+puis paramètrez les fichiers suivants : 
+sudo nano /etc/named.conf
+Modifiez le fichier spécificquement et affectez “any;” à la place de localhost listen-on port 53 { any; }
+et allow query à { any; } 
+
+//
+// named.conf
+//
+// Provided by Red Hat bind package to configure the ISC BIND named(8) DNS
+// server as a caching only nameserver (as a localhost DNS resolver only).
+//
+// See /usr/share/doc/bind*/sample/ for example named configuration files.
+//
+
+options {
+        listen-on port 53 { any; };
+        listen-on-v6 port 53 { any; };
+        directory       "/var/named";
+        dump-file       "/var/named/data/cache_dump.db";
+        statistics-file "/var/named/data/named_stats.txt";
+        memstatistics-file "/var/named/data/named_mem_stats.txt";
+        secroots-file   "/var/named/data/named.secroots";
+        recursing-file  "/var/named/data/named.recursing";
+        allow-query     { any; };
+
+        /*
+         - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
+         - If you are building a RECURSIVE (caching) DNS server, you need to enable
+           recursion.
+         - If your recursive DNS server has a public IP address, you MUST enable access
+           control to limit queries to your legitimate users. Failing to do so will
+           cause your server to become part of large scale DNS amplification
+           attacks. Implementing BCP38 within your network would greatly
+           reduce such attack surface
+        */
+        recursion yes;
+
+        dnssec-validation yes;
+
+        managed-keys-directory "/var/named/dynamic";
+        geoip-directory "/usr/share/GeoIP";
+
+        pid-file "/run/named/named.pid";
+        session-keyfile "/run/named/session.key";
+
+        /* https://fedoraproject.org/wiki/Changes/CryptoPolicy */
+        include "/etc/crypto-policies/back-ends/bind.config";
+};
+
+logging {
+        channel default_debug {
+                file "data/named.run";
+                severity dynamic;
+        };
+};
+
+zone "." IN {
+        type hint;
+        file "named.ca";
+};
+
+include "/etc/named.rfc1912.zones";
+include "/etc/named.root.key";
+
+
+
+
+
+
+sudo nano /etc/named.rfc1912.zones
+et ajoutez y les informations de votre zone : 
+
+zone "lazone.com" IN {
+        type master;
+        file "lazone.forward";
+        allow-update { none; };
+};
+zone "200.168.192.in-addr.arpa" IN {
+        type master;
+        file "lazone.reverse";
+        allow-update { none; };
+};
+
+
+Ensuite paramétrez vos fichier qui configurent la zone dns et la zone inversée : 
+sudo nano /var/named/lazone.forward
+et entrez les données suivantes correspondant à votre dns et à vos ip : 
+$TTL 86400
+@   IN  SOA     SRV-DHCP-DNS.lazone.com. root.SRV-DHCP-DNS.lazone.com. (
+        2022080800             ;Serial
+         3600        ;Refresh
+         1800        ;Retry
+         604800      ;Expire
+         86400       ;Minimum TTL
+)
+  ; Set your Name Servers here
+@         IN  NS      SRV-DHCP-DNS.lazone.com.
+     
+;Mail Exchanger
+lazone.com.   IN     MX   10   mail.lazone.com.
+
+;CNAME record
+ftp     IN      CNAME   www.lazone.com.
+
+;SRV example for LDAP
+;_ldap._tcp.computingforgeeks.local.    SRV 0 0 389 ldap.computingforgeeks.local.
+
+ ; Set each IP address of a hostname. Sample A records.
+SRV-DHCP-DNS       IN       A      192.168.200.10
+SRV-DNS   IN       A       192.168.200.192
+SRV-Monitoring     IN       A      192.168.200.191
+SRV-Fichier     IN       A      192.168.200.190
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sudo nano /var/named/lazone.reverse
+et entrez les données suivantes correspondant à votre dns et à vos ip : 
+$TTL 86400
+@   IN  SOA     SRV-DHCP-DNS.lazone.com. root.SRV-DHCP-DNS.lazone.com. (
+        2022080800             ;Serial
+         3600        ;Refresh
+         1800        ;Retry
+         604800      ;Expire
+         86400       ;Minimum TTL
+ )
+         ; Set Name Server
+@         IN  NS      SRV-DHCP-DNS.lazone.com.
+; Set each IP address of a hostname. Sample PTR records.
+10      IN  PTR    SRV-DHCP-DNS.lazone.com.
+192      IN  PTR     SRV-DNS.lazone.com.
+191      IN  PTR     SRV-Monitoring.lazone.com.
+190      IN  PTR     SRV-Fichier.lazone.com.
+
+
+Donnez les droits au compte root sur le dns
+
+Puis testez que vous n’avez pas d’erreur : 
+sudo named-checkzone lazone.com  /var/named/lazone.forward
+
+
+
+
+sudo named-checkzone 200.168.192.in-addr.arpa  /var/named/lazone.reverse
+
+Ajoutez votre serveur dns comme resolveur dans : 
+sudo nano /etc/resolv.conf
+nameserver 192.168.200.10
+
+sudo firewall-cmd --add-service=dns --permanent
+sudo firewall-cmd --reload
+
+sudo systemctl enable --now named.service
+sudo systemctl start named.service
+sudo systemctl status named.service
+
+Puis validez le bon fonctionnement avec un hote extérieur : 
+avec dig : 
+dig lazone.com
+
+
+
+
+dig -x 192.168.200.10
+
+et ensuite pingez vos serveurs avec leurs noms : 
+ping SRV-DHCP-DNS.lazone.com
+ping SRV-Monitoring.lazone.com
+
+
+Activation DDNS (Dynamique DNS) : 
+c’est une fonctionnalité qui permet au serveur dhcp de configurer les dns.
+Le serveur dhcp va affecter des ip, un serveur dns, et mettre à jour le dns c’est à dire mettre à jour l’association des noms avec les nouvelles ip de vos serveurs.
+
+Créez une clé de communication via rndc (module bind - le dns) : 
+sudo rndc-confgen -a
+
+copiez votre clé : 
+
+
+
+
+Modifiez le DNS :
+Arrêtez la mise à jour automatique de vos services bind9 (DNS) :  
+sudo rndc freeze
+puis allez modifier vos fichier : 
+sudo nano /etc/named.conf
+modifiez votre fichier named.conf
+ et ajoutez à la fin de la partie options { allow-update    { 127.0.0.1; 192.168.200.10; }; }
+
+Les ips sont celle du localhost (votre serveur) et du serveur dhcp.
+Ensuite allez dans vos fichier de configuration de zone : 
+sudo nano /var/named/lazone.forward
+
+sudo nano /var/named/lazone.reverse
+
+et supprimez les enregistrements dns autre que votre serveur dns.
+Puis configurez le fichier named.rfc1912.zones et ajoutez y la clé dans /etc/rndc.key
+sudo nano /etc/named.rfc1912.zones
+
+
+
+
+Et modifiez les paramètres allow-update de votre zone et ajoutez : 
+allow-update {key dhcpserver; };
+
+
+Configuration DHCP : 
+sudo nano /etc/dhcp/dhcpd.conf
+
+Modifiez les options : 
+option routers 192.168.200.1;
+option subnet-mask 255.255.255.0;
+option domain-name "lazone.com";
+option domain-name-servers 192.168.200.10;
+
+Modifiez le fichier dhcpd.conf et ajoutez y la clé rndc : 
+key dhcpserver {
+        algorithm hmac-sha256;
+        secret "FFPdAQ/BD8eZF4O9mI4i5lHxB530X620iHplJsZ2U/A=";
+};
+Ensuite ajoutez vos zones dns à la suite du paramétrage de l’affectation d’ip : 
+subnet 192.168.200.0 netmask 255.255.255.0 {
+range 192.168.200.150 192.168.200.160;
+default-lease-time 3600;
+authoritative;
+max-lease-time 3600;
+zone lazone.com. {
+      primary 192.168.200.10;
+      key dhcpserver;
+      }
+   zone 200.168.192.IN-ADDR.ARPA. {
+      primary 192.168.200.10;
+      key dhcpserver;
+      }
+ }
+et ajoutez les modifications ddns-updates : 
+ddns-updates on;
+ddns-update-style interim;
+
+Redémarrez les services (DNS et DHCP) 
+et si vous avez un soucis renouvellez la clé rndc : rndc.key
+et modifiez les configurations du DNS et du DHCP
+
+
+
+

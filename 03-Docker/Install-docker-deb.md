@@ -43,7 +43,7 @@ sudo systemctl status docker
 
 ## Now manage, download, check and install application/services (easy way)
 
-Search your favorite Images in the docker hub 
+Search your favorite Images in the docker hub, here is an exemple with nginx :
 ```shell
 sudo docker search nginx
 ```
@@ -51,12 +51,20 @@ You can either download by pulling it :
 ```shell
 sudo docker pull nginx
 ```
-Or you can run :
+Or you can also do it by running the image, and docker will pull the image after checking if the image is stored in your docker's image directory :
 ```shell
-sudo docker pull nginx
+sudo docker run -it nginx bash
 ```
-
-
+To check the images you have pulled run :
+```shell
+sudo docker image ls
+```
+this should be the output : 
+```shell
+REPOSITORY        TAG       IMAGE ID       CREATED       SIZE
+nginx             latest    b52e0b094bc0   5 weeks ago   192MB
+hello-world       latest    74cc54e27dc4   7 weeks ago   10.1kB
+```
 
 
 ```shell

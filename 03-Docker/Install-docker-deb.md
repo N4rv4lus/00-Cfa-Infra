@@ -107,3 +107,14 @@ It will display a file, and you must be looking to the "Network Settings Part" t
 Then put the IP with the port in the dashboard and you will have finished the setup of the datasource.
 
 Now to check the prometheus dashboard, go in the datasource and there are 2 tabs, "Setting" and "Dashboard" download "Prometheus 2.0 Stats" and you will have your first dashboard.
+
+You can also check that your containers are correctly running by running : 
+```shell
+sudo docker ps
+```
+It will display something like this, with the image, the container ID's, and more informations :
+```sql
+CONTAINER ID   IMAGE             COMMAND                  CREATED        STATUS        PORTS                                         NAMES
+ced952fcb712   grafana/grafana   "/run.sh"                19 hours ago   Up 19 hours   0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp   grafana
+95b46aa4a9c9   prom/prometheus   "/bin/prometheus --c…"   19 hours ago   Up 19 hours   127.0.0.1:9090->9090/tcp                      prometheus
+```

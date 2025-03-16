@@ -135,4 +135,3 @@ And now test it in prometheus url "127.0.0.1:9090", it should be functionnal.
 Now add a dashboard to grafana, select dashboard then new dashboard, and select "import". You can find dashboards in "grafana.com/dashboards".
 
 The one I use for node-exporter is : the 1860.
-

@@ -51,7 +51,7 @@ ced952fcb712   grafana/grafana   "/run.sh"                19 hours ago   Up 19 h
 95b46aa4a9c9   prom/prometheus   "/bin/prometheus --c…"   19 hours ago   Up 19 hours   127.0.0.1:9090->9090/tcp                      prometheus
 ```
 
-## Node Exporter
+## Setup Node Exporter
 Now we will install and run node-exporter to monitor the host where are running prometheus and grafana because prometheus only monitors himself.
 
 As always, search node-exporter image in the docker hub :
@@ -59,6 +59,7 @@ As always, search node-exporter image in the docker hub :
 ```shell
 sudo docker search node-exporter
 ```
+The one we are looking for is the "official", there is no mention that it is official, but it seems to be that it is "/prom/node-exporter"
 
 Now go to the docker hub and run : 
 ```shell
@@ -70,3 +71,35 @@ docker run -d \
   --path.rootfs=/host
 ```
 
+You can now access the node-exporter web interface in your browser by typing the url "localhost:9100"
+There is just a small problem, with this setup, node-exporter is setup to avoid monitoring himself, but it cannot be scraped by prometheus since it does not have an internal IP.
+You can check by running :
+
+```shell
+sudo docker inspect node-exporter | grep network
+```
+
+So now delete it with by typing : 
+
+```shell
+sudo docker rm node-exporter
+```
+
+```shell
+sudo docker run -d --name=node-exporter -p 9100:9100 node-exporter
+```
+
+Now inspect you node-exporter container to check it's IP :
+```shell
+sudo docker inspect node-exporter | grep IPA
+```
+
+It should output the IP configuration like this, if you need more information you can run the same CLI but whithout the "| grep IPA", it will display all the container informations
+```shell
+            "SecondaryIPAddresses": null,
+            "IPAddress": "172.17.0.5",
+                    "IPAMConfig": null,
+                    "IPAddress": "172.17.0.5",
+```
+
+Now to monitor it, edit your prometheus.yml

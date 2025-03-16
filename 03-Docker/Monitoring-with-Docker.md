@@ -115,6 +115,11 @@ Now edit promtheus.yml
 vi /etc/prometheus.yml
 ```
 
+Now restart your container by sending and http request to the server "-X POST", the adress where Prometheus is accessible - & reload to reload the configuration file  "http://localhost:9090/-/reload" : 
+```shell
+curl -X POST http://localhost:9090/-/reload
+```
+
 Add the new scrape configuration : 
 ```yaml
   - job_name: "node exporter"

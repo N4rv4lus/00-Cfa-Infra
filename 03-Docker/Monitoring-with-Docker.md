@@ -97,7 +97,7 @@ sudo docker inspect node-exporter | grep IPA
 It should output the IP configuration like this, if you need more information you can run the same CLI but whithout the "| grep IPA", it will display all the container informations
 ```shell
             "SecondaryIPAddresses": null,
-            "IPAddress": "172.17.0.5",
+            "IPAddress": "172.17.0.4",
                     "IPAMConfig": null,
                     "IPAddress": "172.17.0.4",
 ```
@@ -115,11 +115,6 @@ Now edit promtheus.yml
 vi /etc/prometheus.yml
 ```
 
-Now restart your container by sending and http request to the server "-X POST", the adress where Prometheus is accessible - & reload to reload the configuration file  "http://localhost:9090/-/reload" : 
-```shell
-curl -X POST http://localhost:9090/-/reload
-```
-
 Add the new scrape configuration : 
 ```yaml
   - job_name: "node exporter"
@@ -127,6 +122,13 @@ Add the new scrape configuration :
 
     static_configs:
       - targets: ["172.17.0.4:9100"]
+```
+
+To validate the modification with vi use :w (to write), and :q (to quit & save).
+
+Now restart your container by sending and http request to the server "-X POST", the adress where Prometheus is accessible - & reload to reload the configuration file  "http://localhost:9090/-/reload" : 
+```shell
+curl -X POST http://localhost:9090/-/reload
 ```
 
 And now test it in prometheus url "127.0.0.1:9090", it should be functionnal.

@@ -99,7 +99,33 @@ It should output the IP configuration like this, if you need more information yo
             "SecondaryIPAddresses": null,
             "IPAddress": "172.17.0.5",
                     "IPAMConfig": null,
-                    "IPAddress": "172.17.0.5",
+                    "IPAddress": "172.17.0.4",
 ```
 
-Now to monitor it, edit your prometheus.yml
+So you can access the node-exporter dashboard by typing localhost:9100.
+Now to add it into prometheus and visualize it in grafana there are a few steps, so now edit your prometheus.yml.
+
+Access promehteus container shell
+```shell
+sudo exec -it promehteus sh
+```
+
+Now edit promtheus.yml
+```shell
+vi /etc/prometheus.yml
+```
+
+Add the new scrape configuration : 
+```yaml
+  - job_name: "node exporter"
+
+
+    static_configs:
+      - targets: ["172.17.0.4:9100"]
+```
+
+And now test it in prometheus url "127.0.0.1:9090", it should be functionnal.
+Now add a dashboard to grafana, select dashboard then new dashboard, and select "import". You can find dashboards in "grafana.com/dashboards".
+
+The one I use for node-exporter is : the 1860.
+

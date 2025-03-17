@@ -2,6 +2,7 @@
 
 There are multiple type of network solutions in docker. Here we will see how to setup a bridge network.
 All of the informations can be found on docker docs website.
+(all the configurations files are stored in /var/lib/docker/)
 
 First check docker networks :
 ```shell
@@ -162,5 +163,5 @@ Here is the output, check the section "container" :
 ]
 ```
 
-Just to be sure that your configuration is working just modify the scrape config for promtheus and replace the old IP of node exporter by the new one, and all the containers will be accessible by their new IP.
+Just to be sure that your configuration is working just modify the scrape config for promtheus (/etc/prometheus/prometheus.yml) and replace the old IP of node exporter by the new one, and all the containers will be accessible by their new IP.
 

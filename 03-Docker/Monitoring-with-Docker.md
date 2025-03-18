@@ -112,7 +112,7 @@ sudo exec -it promehteus sh
 
 Now edit promtheus.yml
 ```shell
-vi /etc/prometheus.yml
+vi /etc/prometheus/prometheus.yml
 ```
 
 Add the new scrape configuration : 

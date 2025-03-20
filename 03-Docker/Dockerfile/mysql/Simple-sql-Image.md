@@ -1,6 +1,6 @@
 # Here is a small guide to build your first sql image with docker
 
-## Create the directory and push the files
+## Create the directory and MYSQL Containers files
 First create a new directory to store the files that will permit to build the image :
 ```shell
 mkdir /docker-test/mysql
@@ -41,6 +41,7 @@ EXPOSE 3306
 ## init.sql /docker-entrypoint-initdb.d/
 ```
 
+## Build & test mysql container image
 Now build it
 ```shell
 docker build -t test-mysql:latest .

@@ -1,0 +1,15 @@
+# syntax=docker/dockerfile:1
+
+FROM mysql
+
+WORKDIR /database
+
+USER mysql
+
+ENV MYSQL_ROOT_PASSWORD=0000
+
+ENV MYSQL_USER=db_user
+ENV MYSQL_PASSWORD=0000
+ENV MYSQL_DATABASE=my_database
+
+EXPOSE 3306

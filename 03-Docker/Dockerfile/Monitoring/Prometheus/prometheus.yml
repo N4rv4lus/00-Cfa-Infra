@@ -35,4 +35,4 @@ scrape_configs:
 
 
     static_configs:
-      - targets: ["172.16.20.130:9100"]
+      - targets: ["nd-exporter:9100"]

@@ -96,6 +96,9 @@ You can now access "Prom" container in your browser with localhost:9090, and Pro
 
 Now for the setup of Grafana 
 
+```shell
+mkdir /monitoring/grafna
+```
 
 ```ini
 [security]

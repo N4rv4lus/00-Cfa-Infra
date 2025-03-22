@@ -40,12 +40,6 @@ def poser_question():
        # print("Réponse Incorrect")
     return False
 
-""" TROUVER SOLO EHEHEHEH
-while NB_QUESTIONS > 0:
-    print(f"Question numéro {NUM_QUESTION} :")
-    poser_question()
-    NUM_QUESTION += 1
-    NB_QUESTIONS -= 1"""
 nb_points = 0
 for i in range(0, NB_QUESTIONS):
     print(f"Question n* {i+1} sur {NB_QUESTIONS}:")

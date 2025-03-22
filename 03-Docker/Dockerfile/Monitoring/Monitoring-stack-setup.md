@@ -95,3 +95,41 @@ You can now access "Prom" container in your browser with localhost:9090, and Pro
 ## Grafana image Configuration
 
 Now for the setup of Grafana 
+
+
+```ini
+[security]
+# disable creation of admin user on first start of grafana
+;disable_initial_admin_creation = false
+
+# default admin user, created on startup
+admin_user = grafana
+
+# default admin password, can be changed before first start of grafana,  or in profile settings
+admin_password = 0000
+```
+
+```yaml
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    url: http://Prom:9090
+    access: proxy
+    isDefault: true
+```
+
+```Dockerfile
+# syntax=docker/dockerfile:1
+
+FROM grafana/grafana
+
+# Copy modified grafana.ini in grafa directory
+COPY grafana.ini /etc/grafana
+
+COPY datasources.yml /etc/grafana/provisioning/datasources
+```
+
+docker build -t test-grafana:latest .
+docker run --name new-test-grafana -d -p 127.0.0.1:3000:3000 test-grafana:latest
+docker network connect monitoring new-test-grafana

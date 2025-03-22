@@ -93,3 +93,5 @@ docker network inspect Prom
 You can now access "Prom" container in your browser with localhost:9090, and Prom is monitoring nd-exporter.
 
 ## Grafana image Configuration
+
+Now for the setup of Grafana 

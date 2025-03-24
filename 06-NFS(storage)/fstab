@@ -1,0 +1,18 @@
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# systemd generates mount units based on this file, see systemd.mount(5).
+# Please run 'systemctl daemon-reload' after making changes here.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+# / was on /dev/sda2 during installation
+UUID=d60695f7-dc57-4f82-9c85-669486fb7681 /               ext4    errors=remount-ro 0       1
+# /boot/efi was on /dev/sda1 during installation
+UUID=34B5-C7C2  /boot/efi       vfat    umask=0077      0       1
+# swap was on /dev/sda3 during installation
+UUID=04803b6b-ac50-4dfb-9398-f26e64953ee5 none            swap    sw              0       0
+/dev/sr0        /media/cdrom0   udf,iso9660 user,noauto     0       0
+192.168.100.188:/nfshare/docker-test/ /nfsmount nfs     rw      0       0

@@ -62,24 +62,26 @@ sudo chown docker-test /nfshare/docker-test/
 ```
 
 ## NFS Client
+Now setup client :
 
+1st search and download nfs-utils :
 ```shell
 sudo apt search nfs-utils
 ```
-
+Now downloaded the wanted version :
 ```shell
 sudo apt install libnfs-utils
 ```
-
+Now mount the nfs shared folder :
 ```shell
 sudo mount -t nfs4 192.168.100.188:/nfshare/docker-test/ /nfsmount
 ```
-
+Now check that the mount is correct, the output should be 0
 ```shell
 mount -a
 echo $?
 ```
-
+And if you reboot the mount point will not be functionnal, you will have to mount it at each boot, so add these line to the fstab, it will mount automatically at start of your server.
 ```txt
 fstab
 192.168.100.188:/nfshare/docker-test/ /nfsmount nfs     rw      0       0

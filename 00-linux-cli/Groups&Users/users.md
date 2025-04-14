@@ -40,3 +40,36 @@ Here is the group output :
 users:x:100:administrator,test-user,docker-test,new-user
 new-user:x:1003:
 ```
+
+## PATH 
+Now we will see how to add access to specific command, files, directories to a group and then affect it to the users (mostly automatic if the user is in the group)
+Here we will add command 
+
+
+
+First we will make a new directory specifically for create links for commands to add them to this specific group :
+sudo mkdir /opt/cmd-new-user
+
+Now we will change the ownership of the new directory to root & new-user group : 
+sudo chown root:new-user /opt/cmd-new-user/
+
+Now we affect to the owner the rights to execute, read&write with 7, then for the group to read&execute with 5, and for the other 0 so nothing they cannot access it, read it, execute it :
+```shell
+sudo chmod 750 /opt/cmd-new-user
+```
+Now we'll be creating the link to the commands we want that the "new-user" group can use :
+```shell
+sudo ln -s /sbin/reboot /opt/cmd-new-user/sysctl
+sudo ln -s /sbin/reboot /opt/cmd-new-user/reboot
+```
+Now reload the bash source for the current environnement of the correct user, here it is "new-user"
+```shell
+source ~/.bashrc
+```
+```shell
+echo $PATH
+```
+```shell
+/opt/cmd-new-user:/opt/cmd-new-user:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+```
+But as he is not in the sudoers group and the 2 commands are stored in the /sbin that is locked to the sudoers group you cannot run them with that user/group

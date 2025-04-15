@@ -63,13 +63,70 @@ sudo ln -s /sbin/reboot /opt/cmd-new-user/sysctl
 sudo ln -s /sbin/reboot /opt/cmd-new-user/reboot
 ```
 Now reload the bash source for the current environnement of the correct user, here it is "new-user"
+Here is the command to edit your bash environnement, and apply it :
 ```shell
+echo 'export PATH="/opt/cmd-new-user:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
+And check it with :
 ```shell
 echo $PATH
 ```
+This is the output you should have :
 ```shell
 /opt/cmd-new-user:/opt/cmd-new-user:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
 ```
-But as he is not in the sudoers group and the 2 commands are stored in the /sbin that is locked to the sudoers group you cannot run them with that user/group
+So as you can see there is a new path "/opt/cmd-new-user".
+But as he is not in the sudoers group and the 2 commands are stored in the /sbin that is locked to the sudoers group you cannot run them with that user/group.
+
+## Add a user in a group
+So here we will be adding a user in the group we just created :
+```shell
+sudo usermod -aG new-user test-test
+```
+You can check that the user "test-test" have been added in the new group with :
+```shell
+groups test-test
+```
+Here is the output : 
+```shell
+test-test : test-test users new-user
+```
+Now you still have to refresh the current shell :
+```shell
+echo 'export PATH="/opt/cmd-new-user:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+echo $PATH #still here to check the output
+```
+Here is the output :
+```shell
+/opt/cmd-new-user:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+```
+We can check by pushing a script inside this directory, all the users in the group can execute the scripts or specific commands we don't want to store in /bin or /sbin.
+Since last time we have pushed a new script in this directory "math-game.py", and since the user "test-test" is in the group new-user and it's shell have been refreshed the user can run the script where ever he wants.
+First check the script with :
+```shell
+ls -als /opt/cmd-new-user/
+```
+Here is the output : 
+```shell
+total 12
+4 drwxr-x--- 2 root new-user 4096 Apr 15 16:06 .
+4 drwxr-xr-x 4 root root     4096 Apr 14 22:14 ..
+4 -rwxr-xr-x 1 root root     1421 Apr 15 16:06 math-game.py
+0 lrwxrwxrwx 1 root root       12 Apr 14 22:17 reboot -> /sbin/reboot
+0 lrwxrwxrwx 1 root root       12 Apr 14 22:18 sysctl -> /sbin/sysctl
+```
+Now run :
+```shell
+math-game.py
+```
+Here is the output :
+```python
+Question n* 1 sur 10:
+Calculez: 50 + 31 = 81
+Réponse correcte
+
+Question n* 2 sur 10:
+Calculez: 39 * 26 =
+```

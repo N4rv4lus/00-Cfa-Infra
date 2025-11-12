@@ -33,7 +33,10 @@ sudo mkdir /etc/ansible/hosts
 ```
 
 ## add your hosts : 
-
+Firstly generate you ssh key with ssh-keygen (you can specify the type of protocol (-t) and the size of the key (-b) or you can specify nothing.)
+```
+ssh-keygen
+```
 Here a small cli to exchange rsa keys between ansible and the host where you will be launching playbook and commands
 
 ```

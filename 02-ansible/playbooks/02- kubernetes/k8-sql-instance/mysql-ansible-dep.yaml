@@ -1,0 +1,30 @@
+---
+  - name: Shell Examples
+    hosts: MANAGER-KUB
+    tasks:
+
+    - name: Copy shell script to remote server
+      copy:
+        src: /home/admin/mysql/mysql-deployment.yaml
+        dest: /home/admin/
+        mode: 0755
+
+    - name: test
+      shell:
+         "kubectl apply -f /home/admin/mysql-deployment.yaml"
+
+    - name: Sleep for 5 seconds and timeout
+      tags: sleep5
+      wait_for:
+         delay: 5
+         timeout: 0
+
+    - name: test
+      shell:
+         "kubectl get pod -o wide"
+      register: kub_output
+    - name: test output file
+      copy:
+         content: "{{ kub_output.stdout }}"
+         dest: "/home/admin/output-connexionMYSQL.txt"
+      delegate_to: localhost

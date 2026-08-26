@@ -1,0 +1,115 @@
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: redis-master
+  labels:
+    app: redis
+    role: master
+spec:
+  replicas: 1
+  selector:
+    app: redis
+    role: master
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+    spec:
+      containers:
+      - name: redis-master
+        image: registry.k8s.io/redis:e2e
+        ports:
+        - name: redis-server
+          containerPort: 6379
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-master
+  labels:
+    app: redis
+    role: master
+spec:
+  ports:
+  - port: 6379
+    targetPort: redis-server
+  selector:
+    app: redis
+    role: master
+---
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: redis-replica
+  labels:
+    app: redis
+    role: replica
+spec:
+  replicas: 2
+  selector:
+    app: redis
+    role: replica
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: replica
+    spec:
+      containers:
+      - name: redis-replica
+        image: registry.k8s.io/redis-slave:v2
+        ports:
+        - name: redis-server
+          containerPort: 6379
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-replica
+  labels:
+    app: redis
+    role: replica
+spec:
+  ports:
+  - port: 6379
+    targetPort: redis-server
+  selector:
+    app: redis
+    role: replica
+---
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: guestbook
+  labels:
+    app: guestbook
+spec:
+  replicas: 3
+  selector:
+    app: guestbook
+  template:
+    metadata:
+      labels:
+        app: guestbook
+    spec:
+      containers:
+      - name: guestbook
+        image: registry.k8s.io/guestbook:v3
+        ports:
+        - name: http-server
+          containerPort: 3000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: guestbook
+  labels:
+    app: guestbook
+spec:
+  ports:
+  - port: 3000
+    targetPort: http-server
+  selector:
+    app: guestbook
+  type: LoadBalancer

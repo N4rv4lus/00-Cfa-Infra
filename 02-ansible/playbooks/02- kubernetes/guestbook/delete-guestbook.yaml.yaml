@@ -1,0 +1,24 @@
+---
+  - name: Shell Examples
+    hosts: MANAGER-KUB
+    tasks:
+
+    - name: test
+      shell:
+         "kubectl delete service guestbook"
+    - name: test
+      shell:
+         "kubectl delete rc guestbook"
+    - name: test
+      shell:
+         "kubectl delete svc redis-replica"
+    - name: test
+      shell:
+         "kubectl delete rc redis-replica"
+    - name: test
+      shell:
+         "kubectl delete svc redis-master"
+    - name: test
+      shell:
+         "kubectl delete rc redis-master"
+

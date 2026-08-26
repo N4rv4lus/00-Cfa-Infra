@@ -1,16 +1,18 @@
 # Bao setup
 
 ## unseal the vault
+```shell
 bao operator unseal
-
+```
 Then add the token which were given when you initialised openbao
 
 ## status check
 Then check the status : 
-
+```shell
 bao status
-
+```
 ### output
+```shell
 Key             Value
 ---             -----
 Seal Type       shamir
@@ -24,43 +26,50 @@ Storage Type    file
 Cluster Name    vault-cluster-7619cf36
 Cluster ID      9a891ae9-e8bf-0844-39b5-1165a6d257d6
 HA Enabled      false
-
+```
 Check the secret list and check that no pki engine was enabled : 
 
+```shell
 bao secrets list -detailed
-
+```
 
 ### output
+```shell
 Path          Plugin       Accessor              Default TTL    Max TTL    Force No Cache    Replication    Seal Wrap    External Entropy Access    Options    Description                                                UUID                                    Version    Running Version       Running SHA256    Deprecation Status
 ----          ------       --------              -----------    -------    --------------    -----------    ---------    -----------------------    -------    -----------                                                ----                                    -------    ---------------       --------------    ------------------
 cubbyhole/    cubbyhole    cubbyhole_f5d98f57    n/a            n/a        false             local          false        false                      map[]      per-token private secret storage                           866eb92f-6d25-bcc1-6519-faa5649df8f7    n/a        v2.6.1+builtin.bao    n/a               n/a
 identity/     identity     identity_ea56d2e5     system         system     false             replicated     false        false                      map[]      identity store                                             b302792a-88d4-a5a7-b9f6-6fa51cea173c    n/a        v2.6.1+builtin.bao    n/a               n/a
 sys/          system       system_fe31cfb6       n/a            n/a        false             replicated     true         false                      map[]      system endpoints used for control, policy and debugging    54065be9-2c40-f6fb-3691-40260e239a12    n/a        v2.6.1+builtin.bao    n/a               n/a
-
+```
 ## enable pki engine
 
 PKI_MOUNT="pki_services"
-
+```shell
 bao secrets enable -path="$PKI_MOUNT" -description="CA émettrice des certificats de services superzone.com" pki
-
+```
 ### output
+```shell
 Success! Enabled the pki secrets engine at: pki_services/
-
+```
 ## Set a time limit for certificates
-
+```shell
 bao secrets tune -default-lease-ttl="720h" -max-lease-ttl="8760h" "$PKI_MOUNT"
-
+```
 ## Create the directory for the CSR and generate the csr
 Openbao will also store the CSR in /intermediate/generate/internal
 La clé privée est stockée elle directement dans openbao, la csr est publique
 
+```shell
 mkdir -p "/home/admin/pki-bootstrap"
 chmod 700 "/home/admin/pki-bootstrap"
-
+```
+```shell
 CSR_FILE="/home/admin/pki-bootstrap/openbao-services-issuing-ca.csr.pem"
-
+```
+```shell
 umask 077
-
+```
+```shell
 bao write -field=csr \
   "$PKI_MOUNT/intermediate/generate/internal" \
   common_name="Superzone OpenBao Services Issuing CA 2026" \
@@ -73,9 +82,10 @@ bao write -field=csr \
   key_name="openbao-services-ca-2026" \
   exclude_cn_from_sans=true \
   > "$CSR_FILE"
-
+```
 ## verify the csr 
 
+```shell
 openssl req \
   -in "$CSR_FILE" \
   -noout -verify -subject
@@ -83,81 +93,93 @@ openssl req \
 openssl req \
   -in "$CSR_FILE" \
   -noout -text
-
+```
 ## Sign the CSR with your intermediate pki dedicated for openbao
-
+```shell
 openssl ca -config /root/ca/intermediateOpenBao/openssl.cnf -extensions v3_openbao_parent_ca -days 1825 -notext -md sha512 -in /home/admin/pki-bootstrap/openbao-services-issuing-ca.csr.pem -out /root/ca/intermediateOpenBao/certs/openbao-services-issuing-ca.cert.pem
-
+```
+```shell
 openssl x509 -noout -text -in /root/ca/intermediateOpenBao/certs/openbao-services-issuing-ca.cert.pem
-
+```
+```shell
 openssl verify -CAfile /root/ca/intermediateOpenBao/certs/ca-chain.cert.pem /root/ca/intermediateOpenBao/certs/openbao-services-issuing-ca.cert.pem
-
+```
 ## now generate the full chain 
+```shell
 sudo bash -c 'cat \
   /root/ca/intermediateOpenBao/certs/openbao-services-issuing-ca.cert.pem \
   /root/ca/intermediateOpenBao/certs/ca-chain.cert.pem \
   > /etc/openbao.d/pki-bootstrap/openbao-services-issuing-ca-chain.pem'
-
+```
 ## Now import the signed certificate in openbao
 must specify temporary values for openbao because it does not accept absolute path
 
+```shell
 PKI_MOUNT="pki_services"
 BUNDLE="/home/admin/pki-bootstrap/openbao-services-issuing-ca.bundle.pem"
-
+```
+```shell
 bao write pki_services/intermediate/set-signed /home/admin/pki-bootstrap/openbao-services-issuing-ca.bundle.pem
-
+```
 ## vérifier l'émetteur
+```shell
 bao read pki_services/config/issuers
 bao read pki_services/issuer/default
-
+```
 lister les clé cryptographiques dans le moteur PKI
+```shell
 bao list pki_services/keys
-
+```
 lister les issuers présents : 
+```shell
 bao list pki_services/issuers
-
+```
 ## Nommer l'issuer, sa clé, et configurer les url AIA, CRL et OCSP
-
+```shell
 bao patch \
   pki_services/issuer/909624f4-7d5d-5a6a-62bf-fc6fcfcb72e5 \
   issuer_name="openbao-services-issuing-ca"
-
+```
+```shell
 bao write \
   pki_services/key/82c83843-ed28-9186-eb47-816d51593aa2 \
   key_name="openbao-services-issuing-key"
-
+```
 Check the configuration : 
+```shell
 bao read \
   pki_services/key/82c83843-ed28-9186-eb47-816d51593aa2
-
+```
 ## now check the chain and the default key 
-
+```shell
 bao read pki_services/config/keys
-
+```
 it must be the following uuid (set previously): 82c83843-ed28-9186-eb47-816d51593aa2
 
 then check the chain : 
+```shell
 bao read -format=json pki_services/issuer/default |
 jq '.data.ca_chain | length'
-
+```
 it must output at least 2, and 3 if you have your ca signed (ca root, intermediate, and the openbao's certificate)
 
 ## URL configuration AIA, CRL, OSCP
 
 set the cluster path for the pki service : 
-
+```shell
 bao write pki_services/config/cluster \
   path="https://openbao.superzone.com:8200/v1/pki_services"
-
+```
 Now set the url in the issuer : 
+```shell
 bao patch \
   pki_services/issuer/909624f4-7d5d-5a6a-62bf-fc6fcfcb72e5 \
   issuing_certificates="https://openbao.superzone.com:8200/v1/pki_services/issuer/909624f4-7d5d-5a6a-62bf-fc6fcfcb72e5/der" \
   crl_distribution_points="https://openbao.superzone.com:8200/v1/pki_services/issuer/909624f4-7d5d-5a6a-62bf-fc6fcfcb72e5/crl/der" \
   ocsp_servers="https://openbao.superzone.com:8200/v1/pki_services/ocsp"
-
+```
 ### Setup CRL
-
+```shell
 bao write pki_services/config/crl \
   disable=false \
   expiry="72h" \
@@ -166,16 +188,18 @@ bao write pki_services/config/crl \
   enable_delta=false \
   ocsp_disable=false \
   ocsp_expiry="12h"
-
+```
 Generate the 1st CRL
+```shell
 bao read pki_services/crl/rotate
-
+```
 now check the crl 
+```shell
 bao read pki_services/config/crl
-
+```
 ### SETUP TLS Server role
 Ce rôle autorise uniquement les sous-domaines de superzone.com, sans IP, wildcard ou certificat client :
-
+```shell
 bao write pki_services/roles/tls-server-superzone \
   issuer_ref="909624f4-7d5d-5a6a-62bf-fc6fcfcb72e5" \
   allowed_domains="superzone.com" \
@@ -201,27 +225,31 @@ bao write pki_services/roles/tls-server-superzone \
   require_cn=true \
   not_before_bound="duration" \
   not_after_bound="ttl-limited"
-
+```
 check the configuration : 
+```shell
 bao read pki_services/roles/tls-server-superzone
-
+```
 Now test and check : 
+```shell
 install -d -m 0700 /home/admin/pki-test
 umask 077
-
+```
+```shell
 bao write -format=json \
   pki_services/issue/tls-server-superzone \
   common_name="pki-test.superzone.com" \
   ttl="24h" \
   > /home/admin/pki-test/issue-response.json
-
+```
 now check Openbao configuration : 
 
 ## Bao health check 
+```shell
 bao pki health-check pki_services
-
+```
 ## bao health check output
-
+```shell
 ca_validity_period
 ------------------
 status    endpoint                                                     message
@@ -343,14 +371,14 @@ allow_acme_headers
 status            endpoint                     message
 ------            --------                     -------
 not_applicable    /pki_services/config/acme    ACME is not enabled, no additional response headers required.
-
+```
 ## Tidy configuration 
 Tidy stores delivered certificates, revoked certificates, issuers, and ACME objects
 interval_duration specify the tidy run to erase non necessary objects.
 safety_buffer
 
 Now configury tidy : 
-
+```shell
 bao write pki_services/config/auto-tidy \
   enabled=true \
   interval_duration="24h" \
@@ -360,11 +388,13 @@ bao write pki_services/config/auto-tidy \
   tidy_expired_issuers=false \
   tidy_revoked_cert_issuer_associations=false \
   tidy_acme=true
-
+```
 checker la configuration : 
+```shell
 bao read pki_services/config/auto-tidy
-
-output : 
+```
+output :
+```shell 
 Key                                         Value
 ---                                         -----
 acme_account_safety_buffer                  2592000
@@ -384,19 +414,21 @@ tidy_invalid_certs                          false
 tidy_move_legacy_ca_bundle                  false
 tidy_revoked_cert_issuer_associations       false
 tidy_revoked_certs                          true
-
+```
 ## Authorize conditional cache for CA and CRL
 
 Eviter au clients d'utiliser if-modified-since, ce qui évite de retélécharger une CA ou une crl inchangée
-
+```shell
 bao secrets tune \
   -passthrough-request-headers="If-Modified-Since" \
   -allowed-response-headers="Last-Modified" \
   pki_services/
-
+```
 check configuration : 
+```shell
 bao read sys/mounts/pki_services/tune
-
+```
+```shell
 Key                            Value
 ---                            -----
 allowed_response_headers       [Last-Modified]
@@ -405,26 +437,29 @@ description                    CA émettrice des certificats de services .superz
 force_no_cache                 false
 max_lease_ttl                  8760h
 passthrough_request_headers    [If-Modified-Since]
-
+```
 ## set cluster PKI url 
 path = api du moteru pki
 aia_path = adresse publique utilisée dans les certificats CA, CRL et OSCP
 
+```shell
 bao write pki_services/config/cluster \
   path="https://openbao.superzone.com:8200/v1/pki_services" \
   aia_path="https://openbao.superzone.com:8200/v1/pki_services"
-
+```
 ## set url with templating 
 Cela permettra de remplacer automatiquement openbao avec l'id du bon issuer, fonctionnement assuré malgré la futur rotation de la CA Openbao
 
+```shell
 bao write pki_services/config/urls \
   enable_templating=true \
   issuing_certificates='{{cluster_aia_path}}/issuer/{{issuer_id}}/der' \
   crl_distribution_points='{{cluster_aia_path}}/issuer/{{issuer_id}}/crl/der' \
   ocsp_servers='{{cluster_aia_path}}/ocsp'
+```
 
-
-output : 
+output :
+```shell 
 Key                              Value
 ---                              -----
 crl_distribution_points          [{{cluster_aia_path}}/issuer/{{issuer_id}}/crl/der]
@@ -432,20 +467,24 @@ delta_crl_distribution_points    []
 enable_templating                true
 issuing_certificates             [{{cluster_aia_path}}/issuer/{{issuer_id}}/der]
 ocsp_servers                     [{{cluster_aia_path}}/ocsp]
-
+```
 verifier la configuration : 
+```shell
 bao read pki_services/config/cluster
-
+```
 output :
+```shell
 Key         Value
 ---         -----
 aia_path    https://openbao.superzone.com:8200/v1/pki_services
 path        https://openbao.superzone.com:8200/v1/pki_services
-
+```
 checker les url : 
+```shell
 bao read pki_services/config/urls
-
-output : 
+```
+output :
+```shell 
 Key                              Value
 ---                              -----
 crl_distribution_points          [{{cluster_aia_path}}/issuer/{{issuer_id}}/crl/der]
@@ -453,14 +492,15 @@ delta_crl_distribution_points    []
 enable_templating                true
 issuing_certificates             [{{cluster_aia_path}}/issuer/{{issuer_id}}/der]
 ocsp_servers                     [{{cluster_aia_path}}/ocsp]
-
+```
 maintenant effectuer un test : 
-
+```shell
 curl --fail --silent --show-error \
   "https://openbao.superzone.com:8200/v1/pki_services/issuer/909624f4-7d5d-5a6a-62bf-fc6fcfcb72e5/crl/der" \
   --output /tmp/pki-services.crl.der
-
+```
 et vérifiez la configuration : 
+```shell
 openssl crl \
   -inform DER \
   -in /tmp/pki-services.crl.der \
@@ -468,15 +508,17 @@ openssl crl \
   -issuer \
   -lastupdate \
   -nextupdate
-
-output : 
+```
+output :
+```shell 
 issuer=C=FR, O=Superzone, OU=PKI, CN=Superzone OpenBao Services Issuing CA 2026
 lastUpdate=Aug 25 15:43:56 2026 GMT
 nextUpdate=Aug 28 15:43:56 2026 GMT
-
+```
 ## enable acme
 
 commencez par checker le role : 
+```shell
 bao read -format=json pki_services/roles/tls-server-superzone |
 jq '.data | {
   issuer_ref,
@@ -491,8 +533,9 @@ jq '.data | {
   key_type,
   key_bits
 }'
-
+```
 output :
+```shell
 {
   "issuer_ref": "909624f4-7d5d-5a6a-62bf-fc6fcfcb72e5",
   "no_store": false,
@@ -508,11 +551,12 @@ output :
   "key_type": "ec",
   "key_bits": 384
 }
-
+```
 le setting suivant doit etre à false pour configurer acme
 no_store = false
 
 maintenant configurez le role tls pour acme et la validité à 48h
+```shell
 bao patch pki_services/roles/tls-server-superzone \
   issuer_ref="default" \
   no_store=false \
@@ -522,8 +566,9 @@ bao patch pki_services/roles/tls-server-superzone \
   allow_localhost=false \
   allow_ip_sans=false \
   allow_wildcard_certificates=false
-
-output : 
+```
+output :
+```shell 
 Key                                   Value
 ---                                   -----
 allow_any_name                        false
@@ -578,8 +623,9 @@ ttl                                   48h
 use_csr_common_name                   true
 use_csr_sans                          true
 use_pss                               false
-
+```
 autoriser les en têtes ACME
+```shell
 bao secrets tune \
   -passthrough-request-headers="If-Modified-Since" \
   -allowed-response-headers="Last-Modified" \
@@ -587,9 +633,9 @@ bao secrets tune \
   -allowed-response-headers="Link" \
   -allowed-response-headers="Location" \
   pki_services/
-
+```
 maintenant activez acme de manière restrictive
-
+```shell
 bao write pki_services/config/acme \
   enabled=true \
   allowed_issuers="909624f4-7d5d-5a6a-62bf-fc6fcfcb72e5" \
@@ -597,10 +643,11 @@ bao write pki_services/config/acme \
   default_directory_policy="forbid" \
   eab_policy="always-required" \
   allow_role_ext_key_usage=false
-
+```
 Il faudra ensuite générer un EAB pour un serveur ou un service :
 EAB = autorisation initiale pour certbot de créer son compte ACME 
 
+```shell
 bao write -format=json -f \
   pki_services/roles/tls-server-superzone/acme/new-eab |
 jq '.data | {
@@ -609,15 +656,16 @@ jq '.data | {
   acme_directory,
   created_on
 }'
-
-output : 
+```
+output :
+```shell 
 {
   "id": "c4a6c9ca-8a6e-d1ed-274b-c73067020a62",
   "key": "vault-eab-0-5mVhjvx_P7nJ3AqlIJrMBtH3zpRtwiT2dy2LYi5kwfk",
   "acme_directory": "roles/tls-server-superzone/acme/directory",
   "created_on": "2026-08-25T18:11:59+02:00"
 }
-
+```
 Explication :
 
 allowed_issuers : seule ta CA OpenBao peut signer via ACME ;
@@ -629,7 +677,7 @@ allow_role_ext_key_usage=false : les certificats ACME reçoivent uniquement Serv
 Lors de la future rotation de l’issuer, il faudra ajouter/remplacer son UUID dans allowed_issuers.
 
 auto certificate renewal
-
+```shell
 bao secrets tune \
   -passthrough-request-headers="If-Modified-Since" \
   -allowed-response-headers="Last-Modified" \
@@ -637,3 +685,4 @@ bao secrets tune \
   -allowed-response-headers="Link" \
   -allowed-response-headers="Location" \
   pki_services/
+```

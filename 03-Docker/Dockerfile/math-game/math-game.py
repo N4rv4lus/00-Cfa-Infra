@@ -46,6 +46,8 @@ if nb_points == NB_QUESTIONS:
     print("Excellent !")
 elif nb_points == 0:
     print("Révisez vos maths !")
+elif nb_points == moyenne:
+    print("Vous avez la moyenne.")
 elif nb_points < moyenne:
     print(f"Peut mieux faire.")
 elif nb_points > moyenne:

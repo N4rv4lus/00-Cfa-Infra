@@ -37,7 +37,6 @@ Firstly generate you ssh key with ssh-keygen (you can specify the type of protoc
 ```
 ssh-keygen
 ```
-
 Here a small cli to exchange rsa keys between ansible and the host where you will be launching playbook and commands
 
 ```

@@ -686,3 +686,289 @@ bao secrets tune \
   -allowed-response-headers="Location" \
   pki_services/
 ```
+
+## Activer les wildcards sur openbao 
+
+Vérifiez votre configuration : 
+```shell
+bao read -format=json \
+  pki_services/roles/tls-server-superzone |
+jq '.data | {
+  issuer_ref,
+  allowed_domains,
+  allow_subdomains,
+  allow_bare_domains,
+  allow_wildcard_certificates,
+  server_flag,
+  client_flag,
+  key_type,
+  key_bits,
+  ttl,
+  max_ttl
+}'
+```
+
+```shell
+bao patch \
+  pki_services/roles/tls-server-superzone \
+  allow_subdomains=true \
+  allow_wildcard_certificates=true \
+  server_flag=true \
+  client_flag=false
+```
+
+Maintenant créez le répertoire pour stocker la wildcard : 
+
+Nous avons choisi le répertoire admin/certs pour une histoire de simplicité. Il faudrait mieux créer un répertoire dédié qui ne soit pas lié à un utilisateur.
+
+```shell
+CERT_DIR="/home/admin/certs/wildcard-superzone"
+
+install -d \
+  -m 0700 \
+  "$CERT_DIR"
+
+cd "$CERT_DIR"
+
+umask 077
+```
+
+Il faut maintenant générer le certificat wildcard : 
+```shell
+bao write -format=json \
+  pki_services/issue/tls-server-superzone \
+  common_name="*.superzone.com" \
+  format="pem" \
+  private_key_format="pkcs8" \
+  remove_roots_from_chain=true \
+  > issuance.json
+```
+
+Vérifiez l'opération : 
+```shell
+jq -e '
+  (.data.certificate != null)
+  and (.data.private_key != null)
+  and ((.data.ca_chain | length) > 0)
+' issuance.json >/dev/null
+```
+Controlez la clé et le numéro de série
+```shell
+jq -r '
+  {
+    private_key_type: .data.private_key_type,
+    serial_number: .data.serial_number
+  }
+' issuance.json
+```
+Extraire les fichiers : 
+
+Clé privée, wildcard, chaine intermédiaire, numéro de série : 
+```shell
+jq -r \
+  '.data.private_key' \
+  issuance.json \
+  > privkey.pem
+```
+```shell
+jq -r \
+  '.data.certificate' \
+  issuance.json \
+  > cert.pem
+```
+```shell
+jq -r \
+  '.data.ca_chain[]' \
+  issuance.json \
+  > chain.pem
+```
+```shell
+jq -r \
+  '.data.serial_number' \
+  issuance.json \
+  > serial.txt
+```
+Concatenez et créez la fucll chaine : 
+```shell
+cat cert.pem chain.pem > fullchain.pem
+```
+Appliquez maintenant les permissions sur ces fichiers : 
+```shell
+chmod 0600 \
+  issuance.json \
+  privkey.pem
+```
+```shell
+chmod 0644 \
+  cert.pem \
+  chain.pem \
+  fullchain.pem \
+  serial.txt
+```
+Puis vérifiez le certificat wildcard : 
+```shell
+openssl x509 \
+  -in cert.pem \
+  -noout \
+  -subject \
+  -issuer \
+  -serial \
+  -dates
+```
+Affichez les SAN : 
+```shell
+openssl x509 \
+  -in cert.pem \
+  -noout \
+  -ext subjectAltName
+```
+Vérifiez l'usage du certificat : 
+```shell
+openssl x509 \
+  -in cert.pem \
+  -noout \
+  -ext extendedKeyUsage
+```
+Vérifiez la clé privée : 
+```shell
+openssl pkey \
+  -in privkey.pem \
+  -check \
+  -noout
+```
+Comparez les empruntes SHA256 des clés privées et publique : 
+```shell
+openssl pkey \
+  -in privkey.pem \
+  -pubout \
+  -outform DER |
+openssl dgst -sha256
+```
+```shell
+openssl x509 \
+  -in cert.pem \
+  -pubkey \
+  -noout |
+openssl pkey \
+  -pubin \
+  -outform DER |
+openssl dgst -sha256
+```
+Vérifiez maintenant la chaine de certificat. Etant donné que la CA racine est déjà installée dans la magasin RHEL il est possible de vérifier toute la chaine : 
+```shell
+openssl verify \
+  -purpose sslserver \
+  -CAfile /etc/pki/tls/certs/ca-bundle.crt \
+  -untrusted chain.pem \
+  cert.pem
+```
+Vérifiez maintenant les services les noms couverts par la wildcard : 
+
+grafana : 
+```shell
+openssl verify \
+  -purpose sslserver \
+  -verify_hostname grafana.superzone.com \
+  -CAfile /etc/pki/tls/certs/ca-bundle.crt \
+  -untrusted chain.pem \
+  cert.pem
+```
+prometheus : 
+```shell
+openssl verify \
+  -purpose sslserver \
+  -verify_hostname prometheus.superzone.com \
+  -CAfile /etc/pki/tls/certs/ca-bundle.crt \
+  -untrusted chain.pem \
+  cert.pem
+```
+Maintenant exportez les fichiers générés vers le serveur docker : 
+```shell
+scp cert.pem chain.pem fullchain.pem privkey.pem serial.txt comtpe@IP:/home/administrator
+```
+```shell
+sudo mv cert.pem chain.pem fullchain.pem privkey.pem serial.txt /certificate/wildcard
+```
+```shell
+SOURCE_DIR="/certificate/wildcard"
+DEST_DIR="/store-docker-file/nginx-reverse/tls"
+```
+```shell
+sudo ls -l \
+  "$SOURCE_DIR/cert.pem" \
+  "$SOURCE_DIR/chain.pem" \
+  "$SOURCE_DIR/fullchain.pem" \
+  "$SOURCE_DIR/privkey.pem"
+```
+```shell
+sudo install -d \
+  -o root \
+  -g root \
+  -m 0700 \
+  "$DEST_DIR"
+```
+```shell
+sudo install \
+  -o root \
+  -g root \
+  -m 0600 \
+  "$SOURCE_DIR/privkey.pem" \
+  "$DEST_DIR/privkey.pem"
+```
+```shell
+sudo install \
+  -o root \
+  -g root \
+  -m 0644 \
+  "$SOURCE_DIR/cert.pem" \
+  "$DEST_DIR/cert.pem"
+```
+```shell
+sudo install \
+  -o root \
+  -g root \
+  -m 0644 \
+  "$SOURCE_DIR/chain.pem" \
+  "$DEST_DIR/chain.pem"
+```
+```shell
+sudo install \
+  -o root \
+  -g root \
+  -m 0644 \
+  "$SOURCE_DIR/fullchain.pem" \
+  "$DEST_DIR/fullchain.pem"
+```
+```shell
+sudo ls -l "$DEST_DIR"
+```
+maintenant configurez le .dockerignore et le .gitignore pour ne pas envoyer les certificats dans l'image docker.
+
+```shell
+sudo nano .dockerignore 
+.git
+tls/
+*.pem
+*.key
+*.crt
+issuance.json
+```
+```shell
+sudo nano .gitignore
+tls/
+*.pem
+*.key
+*.crt
+issuance.json
+```
+maintenant vous pouvez créer et démarrer le conteneur avec les volume permettant au conteneur d'accèder aux certificats : 
+
+```shell
+docker run -d \
+  --name nginx-reverse \
+  --restart unless-stopped \
+  --network monitoring \
+  -p 443:443 \
+  -v /store-docker-file/nginx-reverse/tls:/etc/nginx/tls:ro \
+  nginx-reverse:latest
+```

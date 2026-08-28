@@ -65,7 +65,7 @@ Next steps : Improve to add Argo CD and Harbor to build images and deploy config
 Newest configuration setup. The idea is to secure all the previous applications with custom certificates, and to automate the renew of certificates for each services and secrets using openbao.
 For now there is only a root CA, an intermediate CA for web apps, a second intermediate CA dedicated for Openbao certificates, and OpenBao Setup (for of hashicorp vault).
 
-Next steps : Deploy Openbao on Kubernetes and set certbot and ACME configurations to automate everything.
+Next steps : Deploy Openbao on Kubernetes and set openbao agent to automate certificates and secrets renewal.
 
 ### Windows
 

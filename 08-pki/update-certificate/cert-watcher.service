@@ -1,0 +1,12 @@
+[Unit]
+Description=Validation et déploiement TLS Nginx
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=watcher
+Group=watcher
+WorkingDirectory=/watcher
+ExecStart=/usr/bin/python3 -u /watcher/test-watcher.py
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"

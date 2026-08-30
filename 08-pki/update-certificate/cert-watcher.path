@@ -1,0 +1,9 @@
+[Unit]
+Description=Surveillance des certificats OpenBao
+
+[Path]
+PathChanged=/var/lib/openbao-agent/rendered/
+Unit=nginx-cert-watcher.service
+
+[Install]
+WantedBy=multi-user.target

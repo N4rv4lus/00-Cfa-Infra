@@ -427,6 +427,7 @@ openssl req \
   -out /etc/openbao/tls/openbao.superzone.com.csr.pem \ # Select the destination and filename for the CSR.
   -subj "/C=FR/O=LAB/CN=openbao.superzone.com" \ # Specify the requested subject identity for the future certificate these values describe the role, the CA policy may accept, reject or omit some of these fields.
   -addext "subjectAltName=DNS:openbao.superzone.com" # Add the requested SAN extension to the CSR the issuing CA may accept, replace or ignore requested extensions according to its own configuration.
+```
 ```shell
 openssl req \
   -new \

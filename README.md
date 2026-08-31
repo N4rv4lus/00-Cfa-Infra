@@ -77,7 +77,7 @@ HyperV and powershell script made only for some tests.
 ## Review and next steps
 
 Upcoming infrastructure : 
-![alt text](image-1.png)
+![alt text](image-2.png)
 
 Currently building a gitlab with a CI CD, and terraform server to fully automate the configuration and to have a clean IAC environment. And also to configure loki and an alerter to have a complete monitoring service.
 

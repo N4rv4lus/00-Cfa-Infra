@@ -16,6 +16,9 @@ Storage : 9 To
 You will find multiple technologies tests.
 Each part is set to have a markdown reviewing with some explanations and some commands to configure it, and some tests commands to validate that everything is running as intended.
 
+Current infrastructure overview : 
+![alt text](image.png)
+
 ### Linux CLI
 This one is
 Here you will find the recap of some of the work done during my studies at CFA Insta.
@@ -72,6 +75,9 @@ Next steps : Deploy Openbao on Kubernetes and set openbao agent to automate cert
 HyperV and powershell script made only for some tests.
 
 ## Review and next steps
+
+Upcoming infrastructure : 
+![alt text](image-1.png)
 
 Currently building a gitlab with a CI CD, and terraform server to fully automate the configuration and to have a clean IAC environment. And also to configure loki and an alerter to have a complete monitoring service.
 

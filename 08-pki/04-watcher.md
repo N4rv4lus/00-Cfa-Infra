@@ -22,10 +22,11 @@ watcher-ca.py lui va effectuer la procédure suivante :
 Cela permet de renouveller automatiquement le certificat dédié au reverse proxy d'nginx.
 
 Voici les droits à appliquer : 
-
+```shell
 getent group tls-rendered >/dev/null || sudo groupadd --system tls-rendered
 getent group tls-deploy >/dev/null || sudo groupadd --system tls-deploy
-
+```
+```shell
 id watcher >/dev/null 2>&1 || sudo useradd \
   --system \
   --home-dir /watcher \
@@ -33,69 +34,81 @@ id watcher >/dev/null 2>&1 || sudo useradd \
   --shell /usr/sbin/nologin \
   --user-group \
   watcher
-
+```
+```shell
 sudo usermod -aG tls-rendered watcher
 sudo usermod -aG tls-deploy watcher
 sudo usermod -aG tls-rendered openbao-agent
-
 sudo usermod -aG docker watcher
-
+```
 Droits du répertoire watcher : 
+```shell
 sudo chown root:watcher /watcher
 sudo chmod 0750 /watcher
-
+```
+```shell
 sudo install -d \
   -o watcher \
   -g watcher \
   -m 0700 \
   /watcher/extract
-
+```
+```shell
 sudo install -d \
   -o watcher \
   -g watcher \
   -m 0700 \
   /watcher/tmp
-
+```
+```shell
 sudo chown root:watcher /watcher/test-watcher.py
 sudo chmod 0750 /watcher/test-watcher.py
-
+```
 Droits repertoire openbao : 
+```shell
 sudo chown openbao-agent:tls-rendered \
   /var/lib/openbao-agent/rendered
-
+```
+```shell
 sudo chmod 2770 \
   /var/lib/openbao-agent/rendered
-
+```
 verif :
+```shell
 namei -l /var/lib/openbao-agent/rendered
-
+```
 maintenant modifier le template openbao :
+```shell
 sudoedit /etc/openbao-agent/agent.hcl
-
+```
 exemple : 
+```shell
 template {
   source           = "/etc/openbao-agent/templates/nginx-wildcard.pem.ctmpl"
   destination      = "/var/lib/openbao-agent/rendered/nginx-wildcard-bundle.pem"
   create_dest_dirs = false
   perms            = "0640"
 }
-
+```
 Ajoutez au service openbao le umask 0027 :
+```shell
 sudo nano /etc/systemd/system/openbao-agent.service
-
+```
+```shell
 [Service]
 UMask=0027
-
+```
 Puis corrigez le ficheir actuel :
 
+```shell
 sudo chgrp tls-rendered \
   /var/lib/openbao-agent/rendered/nginx-wildcard-bundle.pem
-
+```
 sudo chmod 0640 \
   /var/lib/openbao-agent/rendered/nginx-wildcard-bundle.pem
-
+```
 et pour les fichiers déjà présents dans le repertoire nginx :
-
+```shell
 sudo chown watcher:tls-deploy \
   /store-docker-file/nginx-reverse/tls/fullchain.pem \
   /store-docker-file/nginx-reverse/tls/privkey.pem
@@ -103,15 +116,17 @@ sudo chown watcher:tls-deploy \
 sudo chmod 0640 \
   /store-docker-file/nginx-reverse/tls/fullchain.pem \
   /store-docker-file/nginx-reverse/tls/privkey.pem
-
+```
 vérifiez les répertoires :
+```shell
 namei -l /store-docker-file/nginx-reverse/tls
-
+```
 Configuration systemd du watcher : 
-
+```shell
 sudoedit /etc/systemd/system/cert-watcher.service
-
+```
 Contenu :
+```shell
 [Unit]
 Description=Validation et déploiement TLS Nginx
 Requires=docker.service
@@ -126,11 +141,13 @@ WorkingDirectory=/watcher
 ExecStart=/usr/bin/python3 -u /watcher/test-watcher.py
 Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 UMask=0027
-
+```
 Ensuite configurez le service inotify systemd :
+```shell
 sudoedit /etc/systemd/system/cert-watcher.path
-
-contenu : 
+```
+contenu :
+```shell 
 [Unit]
 Description=Surveillance du répertoire OpenBao
 
@@ -140,8 +157,9 @@ Unit=cert-watcher.service
 
 [Install]
 WantedBy=multi-user.target
-
+```
 affectez les droits aux fichiers systemd certwatcher : 
+```shell
 sudo chown root:root \
   /etc/systemd/system/cert-watcher.service \
   /etc/systemd/system/cert-watcher.path
@@ -149,27 +167,32 @@ sudo chown root:root \
 sudo chmod 0644 \
   /etc/systemd/system/cert-watcher.service \
   /etc/systemd/system/cert-watcher.path
-
+```
 Puis rechargez et activer : 
+```shell
 sudo systemd-analyze verify \
   /etc/systemd/system/cert-watcher.service \
   /etc/systemd/system/cert-watcher.path
-
+```
+```shell
 sudo systemctl daemon-reload
 sudo systemctl restart openbao-agent.service
 sudo systemctl enable --now cert-watcher.path
-
+```
 Maintenant vérifiez les droits : 
+```shell
 id watcher
 id openbao-agent
-
+```
+```shell
 stat -c '%U:%G %a %n' \
   /var/lib/openbao-agent/rendered \
   /var/lib/openbao-agent/rendered/nginx-wildcard-bundle.pem \
   /store-docker-file/nginx-reverse/tls
-
+```
 ###### TEST & validation ######
 Si vous rencontrez un problème : 
+```shell
 sudo usermod -aG tls-deploy watcher
 
 sudo chown root:tls-deploy \
@@ -177,8 +200,9 @@ sudo chown root:tls-deploy \
 
 sudo chmod 2770 \
   /store-docker-file/nginx-reverse/tls
-
+```
 Puis pour les ficheirs déjà présents : 
+```shell
 sudo chown watcher:tls-deploy \
   /store-docker-file/nginx-reverse/tls/fullchain.pem \
   /store-docker-file/nginx-reverse/tls/privkey.pem
@@ -186,11 +210,13 @@ sudo chown watcher:tls-deploy \
 sudo chmod 0640 \
   /store-docker-file/nginx-reverse/tls/fullchain.pem \
   /store-docker-file/nginx-reverse/tls/privkey.pem
-
+```
 sur les ficheirs déjà présents : 
+```shell
 namei -l /store-docker-file/nginx-reverse/tls
-
+```
 ensuite effectuez le test suivant : 
+```shell
 sudo -u watcher test -r \
   /store-docker-file/nginx-reverse/tls/fullchain.pem \
   && echo "Lecture autorisée"
@@ -198,5 +224,5 @@ sudo -u watcher test -r \
 sudo -u watcher test -w \
   /store-docker-file/nginx-reverse/tls \
   && echo "Écriture autorisée"
-
+```
 
